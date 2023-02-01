@@ -49,3 +49,6 @@ app.*.map.json
 # env
 .env
 lib/env/env.g.dart
+
+# web_proxy
+web_proxy/node_modules/

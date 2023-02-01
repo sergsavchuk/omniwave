@@ -1,12 +1,21 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:multi_split_view/multi_split_view.dart';
 import 'package:omniwave/env/env.dart';
+import 'package:omniwave/models/album.dart';
 import 'package:omniwave/styles.dart';
 import 'package:omniwave/ui/common/album_card.dart';
 import 'package:omniwave/ui/common/app_logo.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spotify/spotify.dart' as spotify;
 import 'package:spotify_sdk/spotify_sdk.dart';
+import 'package:youtube_explode_dart/youtube_explode_dart.dart';
+
+const webProxyUrl = 'http://localhost:443/';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,9 +25,19 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String _spotifyAccessToken = '';
-  final List<spotify.AlbumSimple> _albums = [];
-  Stream<spotify.Page<spotify.AlbumSimple>>? _albumsStream;
+  final List<OmniwaveAlbum> _albums = [];
+
+  final _streamController = StreamController<List<OmniwaveAlbum>>();
+  late final Stream<List<OmniwaveAlbum>> _albumsStream;
+  late final StreamSubscription<List<OmniwaveAlbum>> _albumsStreamSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _albumsStream = _streamController.stream.asBroadcastStream();
+    _albumsStreamSubscription = _albumsStream.listen(_albums.addAll);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +70,11 @@ class _HomePageState extends State<HomePage> {
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [const AppLogo(), spotifyConnectButton()],
+                children: [
+                  const AppLogo(),
+                  _spotifyConnectButton(),
+                  _youtubeSearchButton()
+                ],
               ),
             ),
             Container(
@@ -68,17 +91,9 @@ class _HomePageState extends State<HomePage> {
                   stops: const [0.0, 0.30],
                 ),
               ),
-              child: StreamBuilder<spotify.Page<spotify.AlbumSimple>>(
+              child: StreamBuilder<List<OmniwaveAlbum>>(
                 stream: _albumsStream,
-                builder: (context, snapshot) {
-                  final page = snapshot.data;
-                  if (page != null) {
-                    final newAlbums = page.items;
-                    if (newAlbums != null) {
-                      _albums.addAll(newAlbums);
-                    }
-                  }
-
+                builder: (_, __) {
                   return GridView.count(
                     crossAxisCount: 4,
                     childAspectRatio: 0.75,
@@ -95,7 +110,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget spotifyConnectButton() {
+  Widget _spotifyConnectButton() {
     const accessTokenKey = 'accessToken';
 
     return FutureBuilder(
@@ -106,12 +121,20 @@ class _HomePageState extends State<HomePage> {
           final sharedPrefs = snapshot.data;
           if (sharedPrefs != null &&
               sharedPrefs.getString(accessTokenKey) != null) {
-            _spotifyAccessToken = sharedPrefs.getString(accessTokenKey)!;
+            final spotifyAccessToken = sharedPrefs.getString(accessTokenKey)!;
 
             final spotifyApi = spotify.SpotifyApi.withAccessToken(
-              _spotifyAccessToken,
+              spotifyAccessToken,
             );
-            _albumsStream = spotifyApi.me.savedAlbums().stream();
+            _streamController.addStream(
+              spotifyApi.me.savedAlbums().stream().map(
+                    (albumsPage) =>
+                        albumsPage.items
+                            ?.map((e) => e.toOmniwaveAlbum())
+                            .toList() ??
+                        List.empty(),
+                  ),
+            );
             connectedToSpotify = true;
           }
 
@@ -136,15 +159,22 @@ class _HomePageState extends State<HomePage> {
                 accessToken,
               );
 
-              setState(() {
-                _spotifyAccessToken = accessToken;
-              });
-
               final spotifyApi =
                   spotify.SpotifyApi.withAccessToken(accessToken);
-              setState(() {
-                _albumsStream = spotifyApi.me.savedAlbums().stream();
-              });
+              unawaited(
+                _streamController.addStream(
+                  spotifyApi.me.savedAlbums().stream().map(
+                        (albumsPage) =>
+                            albumsPage.items
+                                ?.map(
+                                  (spotifyAlbum) =>
+                                      spotifyAlbum.toOmniwaveAlbum(),
+                                )
+                                .toList() ??
+                            List.empty(),
+                      ),
+                ),
+              );
             },
             icon: Icon(
               connectedToSpotify ? Icons.link_off : Icons.link,
@@ -163,6 +193,77 @@ class _HomePageState extends State<HomePage> {
           color: Colors.grey,
         );
       },
+    );
+  }
+
+  Widget _youtubeSearchButton() {
+    return TextButton(
+      onPressed: () async {
+        final yt = YoutubeExplode(kIsWeb ? ProxyHttpClient() : null);
+        final searchList = await yt.search
+            .searchContent('Radiohead album', filter: TypeFilters.playlist);
+
+        final playlists = await Future.wait(
+          searchList.map(
+            (playlist) => yt.playlists.get(
+              (playlist as SearchPlaylist).playlistId.value,
+            ),
+          ),
+        );
+
+        _streamController
+            .add(playlists.map((e) => e.toOmniwaveAlbum()).toList());
+      },
+      child: const Text(
+        'Youtube search',
+        // softWrap: false,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _albumsStreamSubscription.cancel();
+    super.dispose();
+  }
+}
+
+/// A workaround for web platform. [YoutubeExplode] doesn't work in web because
+/// of CORS, so the only solution now is to use any proxy server.
+///
+/// But even with the proxy there is still a problem with youtube responding
+/// 403 Forbidden to any POST request. Maybe this is because http.BrowserClient
+/// doesn't support BaseRequest.persistentConnection unlike IOClient.
+// TODO(sergsavchuk): investigate the situation further
+class ProxyHttpClient extends YoutubeHttpClient {
+  @override
+  Future<String> getString(
+    dynamic url, {
+    Map<String, String> headers = const {},
+    bool validate = true,
+  }) {
+    return super.getString(
+      '$webProxyUrl$url',
+      headers: headers,
+      validate: validate,
+    );
+  }
+
+  @override
+  Future<http.Response> post(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+    bool validate = false,
+  }) {
+    return super.post(
+      Uri.parse('$webProxyUrl$url'),
+      headers: headers,
+      body: body,
+      encoding: encoding,
+      validate: validate,
     );
   }
 }

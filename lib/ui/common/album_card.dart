@@ -1,6 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:omniwave/models/album.dart';
 import 'package:omniwave/styles.dart';
-import 'package:spotify/spotify.dart' as spotify;
 
 class AlbumCard extends StatelessWidget {
   const AlbumCard({
@@ -8,7 +9,9 @@ class AlbumCard extends StatelessWidget {
     required this.album,
   });
 
-  final spotify.AlbumSimple album;
+  final OmniwaveAlbum album;
+
+  String _albumUrl(String? url) => album.imageUrl ?? 'some-default-image-url';
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +25,12 @@ class AlbumCard extends StatelessWidget {
           children: [
             Flexible(
               child: Center(
-                child: Image.network(
-                  album.images?[0].url ?? 'some-default-image',
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: Image.network(
+                    _albumUrl(album.imageUrl),
+                    fit: BoxFit.fitHeight,
+                  ),
                 ),
               ),
             ),
@@ -43,7 +50,7 @@ class AlbumCard extends StatelessWidget {
               height: Insets.small,
             ),
             Text(
-              album.artists?[0].name ?? 'Unknown artist',
+              album.artists?.join(', ') ?? 'Unknown artist',
               overflow: TextOverflow.ellipsis,
             ),
           ],

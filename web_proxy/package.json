@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "agentkeepalive": "^4.2.1",
+    "cors-anywhere": "^0.4.4"
+  }
+}
