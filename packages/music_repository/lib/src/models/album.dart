@@ -1,22 +1,22 @@
-import 'package:flutter/foundation.dart';
-import 'package:omniwave/ui/pages/home_page/home_page.dart';
+import 'package:equatable/equatable.dart';
 import 'package:spotify/spotify.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart' as yt;
 
-@immutable
-class OmniwaveAlbum {
-  const OmniwaveAlbum({this.name, this.imageUrl, this.artists});
+const webProxyUrl = 'http://localhost:443/';
+
+class Album extends Equatable {
+  const Album({this.name, this.imageUrl, this.artists});
 
   final String? name;
   final String? imageUrl;
   final List<String>? artists;
 
-  OmniwaveAlbum copyWith({
+  Album copyWith({
     String? name,
     String? imageUrl,
     List<String>? artists,
   }) {
-    return OmniwaveAlbum(
+    return Album(
       name: name ?? this.name,
       imageUrl: imageUrl ?? this.imageUrl,
       artists: artists ?? this.artists,
@@ -24,21 +24,12 @@ class OmniwaveAlbum {
   }
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is OmniwaveAlbum &&
-          runtimeType == other.runtimeType &&
-          name == other.name &&
-          imageUrl == other.imageUrl &&
-          artists == other.artists;
-
-  @override
-  int get hashCode => Object.hash(name, imageUrl, artists);
+  List<Object?> get props => [name, imageUrl, artists];
 }
 
 extension SpotifyAlbumExtension on AlbumSimple {
-  OmniwaveAlbum toOmniwaveAlbum() {
-    return OmniwaveAlbum(
+  Album toOmniwaveAlbum() {
+    return Album(
       name: name,
       imageUrl: images?[0].url,
       artists: artists
@@ -51,11 +42,11 @@ extension SpotifyAlbumExtension on AlbumSimple {
 }
 
 extension SearchPlaylistExtension on yt.SearchPlaylist {
-  OmniwaveAlbum toOmniwaveAlbum() {
-    return OmniwaveAlbum(
+  Album toOmniwaveAlbum({required bool useProxy}) {
+    return Album(
       name: playlistTitle,
       imageUrl: thumbnails.isNotEmpty
-          ? (kIsWeb ? webProxyUrl : '') + thumbnails.last.url.toString()
+          ? (useProxy ? webProxyUrl : '') + thumbnails.last.url.toString()
           : null,
       artists: const ['TODO use yt Playlist'],
     );
@@ -63,8 +54,8 @@ extension SearchPlaylistExtension on yt.SearchPlaylist {
 }
 
 extension PlaylistExtension on yt.Playlist {
-  OmniwaveAlbum toOmniwaveAlbum() {
-    return OmniwaveAlbum(
+  Album toOmniwaveAlbum() {
+    return Album(
       name: title,
       imageUrl: thumbnails.highResUrl,
       artists: [author],

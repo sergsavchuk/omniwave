@@ -1,6 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:omniwave/models/album.dart';
+import 'package:music_repository/music_repository.dart';
 import 'package:omniwave/styles.dart';
 
 class AlbumCard extends StatelessWidget {
@@ -9,7 +8,7 @@ class AlbumCard extends StatelessWidget {
     required this.album,
   });
 
-  final OmniwaveAlbum album;
+  final Album album;
 
   String _albumUrl(String? url) => album.imageUrl ?? 'some-default-image-url';
 

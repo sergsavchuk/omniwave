@@ -1,0 +1,18 @@
+name: music_repository
+description: Music repository
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: '>=2.19.0 <3.0.0'
+
+dependencies:
+  equatable: ^2.0.5
+  http: ^0.13.5
+  spotify: ^0.8.0
+  spotify_sdk: ^2.3.0
+  youtube_explode_dart: ^1.12.3
+
+dev_dependencies:
+  test: ^1.22.2
+  very_good_analysis: ^3.1.0

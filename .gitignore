@@ -52,3 +52,9 @@ lib/env/env.g.dart
 
 # web_proxy
 web_proxy/node_modules/
+
+# mason
+.mason/
+mason-lock.json
+
+
