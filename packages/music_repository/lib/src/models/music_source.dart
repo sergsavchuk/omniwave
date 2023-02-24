@@ -1,0 +1,1 @@
+enum MusicSource { spotify, youtube }
