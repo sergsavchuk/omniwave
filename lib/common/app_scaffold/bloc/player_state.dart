@@ -1,5 +1,6 @@
 part of 'player_bloc.dart';
 
+// ignore_for_file: use_late_for_private_fields_and_variables
 class PlayerState extends Equatable {
   const PlayerState({
     this.isPlaying = false,

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:music_repository/music_repository.dart';
 
 part 'player_event.dart';
@@ -21,12 +22,13 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   final MusicRepository _musicRepository;
+  final Map<MusicSource, Player> _players = {};
   Player? _player;
 
   FutureOr<void> _prevTrackRequested(
     PlayerPrevTrackRequested event,
     Emitter<PlayerState> emit,
-  ) {
+  ) async {
     if (state.currentAlbum == null) {
       return null;
     }
@@ -34,7 +36,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     final tracks = state.currentAlbum!.tracks;
     if (state.currentTrack != null && tracks.indexOf(state.currentTrack!) > 0) {
       final track = tracks[tracks.indexOf(state.currentTrack!) - 1];
-      _play(track);
+      await _play(track);
       emit(
         state.copyWith(
           isPlaying: true,
@@ -47,7 +49,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   FutureOr<void> _nextTrackRequested(
     PlayerNextTrackRequested event,
     Emitter<PlayerState> emit,
-  ) {
+  ) async {
     if (state.currentAlbum == null) {
       return null;
     }
@@ -56,7 +58,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     if (state.currentTrack != null &&
         tracks.indexOf(state.currentTrack!) < tracks.length - 1) {
       final track = tracks[tracks.indexOf(state.currentTrack!) + 1];
-      _play(track);
+      await _play(track);
       emit(
         state.copyWith(
           isPlaying: true,
@@ -70,7 +72,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   FutureOr<void> _playbackPositionChanged(
     PlayerPlaybackPositionChanged event,
     Emitter<PlayerState> emit,
-  ) {
+  ) async {
     if (event.position != state.playbackPosition) {
       emit(state.copyWith(playbackPosition: event.position));
     }
@@ -79,9 +81,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   FutureOr<void> _albumPlayRequested(
     PlayerAlbumPlayRequested event,
     Emitter<PlayerState> emit,
-  ) {
+  ) async {
     if (event.album != state.currentAlbum && event.album.tracks.isNotEmpty) {
-      _play(event.album.tracks[0]);
+      await _play(event.album.tracks[0]);
       emit(
         PlayerState(
           isPlaying: true,
@@ -95,31 +97,43 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   FutureOr<void> _toggleRequested(
     PlayerToggleRequested event,
     Emitter<PlayerState> emit,
-  ) {
+  ) async {
     if (state.currentTrack == null) {
       return null;
     }
 
     if (state.isPlaying) {
-      _player?.pause();
+      await _player?.pause();
       emit(state.copyWith(isPlaying: false));
     } else {
-      _player?.resume();
+      await _player?.resume();
       emit(state.copyWith(isPlaying: true));
     }
   }
 
-  void _play(Track track) {
+  Future<void> _play(Track track) async {
     if (track.source == MusicSource.spotify) {
-      _player ??= SpotifyPlayer(
+      _players[track.source] ??= SpotifyPlayer(
         _musicRepository,
         onTrackPlayed: () => add(PlayerNextTrackRequested()),
         onPlaybackPositionChange: (pos) =>
             add(PlayerPlaybackPositionChanged(pos)),
       );
-
-      _player!.play(track);
+    } else if (track.source == MusicSource.youtube) {
+      _players[track.source] ??= YoutubePlayer(
+        _musicRepository,
+        onTrackPlayed: () => add(PlayerNextTrackRequested()),
+        onPlaybackPositionChange: (pos) =>
+            add(PlayerPlaybackPositionChanged(pos)),
+      );
     }
+
+    if (_player != null) {
+      await _player!.pause();
+    }
+
+    _player = _players[track.source];
+    await _player!.play(track);
   }
 
   @override
@@ -144,11 +158,11 @@ abstract class Player {
   final VoidCallback _onTrackPlayed;
   final void Function(Duration position) _onPlaybackPositionChange;
 
-  void play(Track track);
+  Future<void> play(Track track);
 
-  void pause();
+  Future<void> pause();
 
-  void resume();
+  Future<void> resume();
 
   Future<void> dispose();
 }
@@ -179,19 +193,19 @@ class SpotifyPlayer extends Player {
   Track? _track;
 
   @override
-  void play(Track track) {
+  Future<void> play(Track track) async {
     _track = track;
-    _musicRepository.spotifyPlay(track);
+    await _musicRepository.spotifyPlay(track);
   }
 
   @override
-  void pause() {
-    _musicRepository.spotifyPausePlay();
+  Future<void> pause() async {
+    await _musicRepository.spotifyPausePlay();
   }
 
   @override
-  void resume() {
-    _musicRepository.spotifyResumePlay();
+  Future<void> resume() async {
+    await _musicRepository.spotifyResumePlay();
   }
 
   @override
@@ -209,5 +223,49 @@ class SpotifyPlayer extends Player {
     if (_playbackPosition > _track!.duration) {
       _onTrackPlayed();
     }
+  }
+}
+
+class YoutubePlayer extends Player {
+  YoutubePlayer(
+    super.musicRepository, {
+    required super.onTrackPlayed,
+    required super.onPlaybackPositionChange,
+  }) {
+    _positionSubscription =
+        _player.positionStream.listen(_onPlaybackPositionChange);
+    _stateSubscription = _player.processingStateStream.listen((state) {
+      if (state == ProcessingState.completed) {
+        _onTrackPlayed();
+      }
+    });
+  }
+
+  final AudioPlayer _player = AudioPlayer();
+  late final StreamSubscription<Duration> _positionSubscription;
+  late final StreamSubscription<ProcessingState> _stateSubscription;
+
+  @override
+  Future<void> pause() async {
+    await _player.pause();
+  }
+
+  @override
+  Future<void> play(Track track) async {
+    final uri = await _musicRepository.playYoutubeTrack(track);
+    await _player.setAudioSource(AudioSource.uri(uri));
+    await _player.play();
+  }
+
+  @override
+  Future<void> resume() async {
+    await _player.play();
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _positionSubscription.cancel();
+    await _stateSubscription.cancel();
+    await _player.dispose();
   }
 }

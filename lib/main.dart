@@ -68,14 +68,12 @@ class OmniwaveAppBlocObserver extends BlocObserver {
     super.onTransition(bloc, transition);
     if (transition.event is! PlayerPlaybackPositionChanged || logAll) {
       log('onTransition(${bloc.runtimeType}, $transition)');
-      print('onTransition(${bloc.runtimeType}, $transition)');
     }
   }
 
   @override
   void onError(BlocBase<dynamic> bloc, Object error, StackTrace stackTrace) {
     log('onError(${bloc.runtimeType}, $error, $stackTrace)');
-    print('onError(${bloc.runtimeType}, $error, $stackTrace)');
     super.onError(bloc, error, stackTrace);
   }
 
@@ -85,7 +83,6 @@ class OmniwaveAppBlocObserver extends BlocObserver {
 
     if (event is! PlayerPlaybackPositionChanged || logAll) {
       log('onEvent(${bloc.runtimeType}, $event');
-      print('onEvent(${bloc.runtimeType}, $event');
     }
   }
 }

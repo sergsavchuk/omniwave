@@ -4,7 +4,9 @@ import 'package:http/http.dart' as http;
 import 'package:music_repository/src/models/models.dart';
 import 'package:spotify/spotify.dart' as spotify;
 import 'package:spotify_sdk/spotify_sdk.dart';
-import 'package:youtube_explode_dart/youtube_explode_dart.dart';
+import 'package:youtube_explode_dart/youtube_explode_dart.dart' as yt;
+
+const webProxyUrl = 'http://localhost:8080/';
 
 class PlaybackState {
   PlaybackState({required this.position, required this.isPaused});
@@ -15,7 +17,9 @@ class PlaybackState {
 
 class MusicRepository {
   MusicRepository({required bool useYoutubeProxy})
-      : _useYoutubeProxy = useYoutubeProxy;
+      : _useYoutubeProxy = useYoutubeProxy {
+    _youtube = yt.YoutubeExplode(_useYoutubeProxy ? _ProxyHttpClient() : null);
+  }
 
   spotify.SpotifyApi? _spotifyApi;
   bool _spotifySdkConnected = false;
@@ -27,6 +31,7 @@ class MusicRepository {
   ].join(',');
 
   final bool _useYoutubeProxy;
+  late final yt.YoutubeExplode _youtube;
 
   bool get spotifyConnected => _spotifyApi != null && _spotifySdkConnected;
 
@@ -71,6 +76,30 @@ class MusicRepository {
     }
   }
 
+  Stream<Playlist> loadPlaylists() async* {
+    final searchList = await _youtube.search
+        .searchContent('Radiohead album', filter: yt.TypeFilters.playlist);
+
+    for (final searchItem in searchList) {
+      final playlistId = (searchItem as yt.SearchPlaylist).playlistId.value;
+      final tracks = await _youtube.playlists
+          .getVideos(playlistId)
+          .map((event) => event.toOmniwaveTrack(albumId: playlistId))
+          .toList();
+
+      yield (await _youtube.playlists.get(playlistId))
+          .toOmniwavePlaylist(tracks);
+    }
+  }
+
+  Future<Uri> playYoutubeTrack(Track track) async {
+    final manifest = await _youtube.videos.streams.getManifest(track.id);
+    final audioStreamInfo = manifest.audioOnly.withHighestBitrate();
+    return audioStreamInfo.url;
+    // final audioStream = _youtube.videos.streamsClient.get(audioStreamInfo);
+    // print(audioStreamInfo.toJson());
+  }
+
   Future<void> spotifyPlay(Track track) {
     return SpotifySdk.play(
       spotifyUri: 'spotify:track:${track.id}',
@@ -88,44 +117,31 @@ class MusicRepository {
     );
   }
 
-  void spotifyPausePlay() {
-    SpotifySdk.pause();
+  Future<void> spotifyPausePlay() async {
+    await SpotifySdk.pause();
   }
 
-  void spotifyResumePlay() {
-    SpotifySdk.resume();
-  }
-
-  Stream<Album> youtubePlaylistSearch() async* {
-    final yt = YoutubeExplode(_useYoutubeProxy ? _ProxyHttpClient() : null);
-    final searchList = await yt.search
-        .searchContent('Radiohead album', filter: TypeFilters.playlist);
-
-    for (final searchItem in searchList) {
-      yield (await yt.playlists.get(
-        (searchItem as SearchPlaylist).playlistId.value,
-      ))
-          .toOmniwaveAlbum();
-    }
+  Future<void> spotifyResumePlay() async {
+    await SpotifySdk.resume();
   }
 }
 
-/// A workaround for web platform. [YoutubeExplode] doesn't work in web because
-/// of CORS, so the only solution now is to use any proxy server.
+/// A workaround for web platform. [yt.YoutubeExplode] doesn't work in web
+/// because of CORS, so the only solution now is to use any proxy server.
 ///
 /// But even with the proxy there is still a problem with youtube responding
 /// 403 Forbidden to any POST request. Maybe this is because http.BrowserClient
 /// doesn't support BaseRequest.persistentConnection unlike IOClient.
 // TODO(sergsavchuk): investigate the situation further
-class _ProxyHttpClient extends YoutubeHttpClient {
+class _ProxyHttpClient extends yt.YoutubeHttpClient {
   @override
-  Future<String> getString(
-    dynamic url, {
-    Map<String, String> headers = const {},
-    bool validate = true,
+  Future<http.Response> get(
+    Uri url, {
+    Map<String, String>? headers = const {},
+    bool validate = false,
   }) {
-    return super.getString(
-      '$webProxyUrl$url',
+    return super.get(
+      Uri.parse('$webProxyUrl$url'),
       headers: headers,
       validate: validate,
     );
@@ -145,6 +161,80 @@ class _ProxyHttpClient extends YoutubeHttpClient {
       body: body,
       encoding: encoding,
       validate: validate,
+    );
+  }
+}
+
+extension PlaylistExtension on yt.Playlist {
+  Playlist toOmniwavePlaylist(List<Track> tracks) {
+    return Playlist(
+      id: id.value,
+      name: title,
+      imageUrl: tracks.isNotEmpty ? tracks[0].imageUrl : null,
+      artists: [author],
+      tracks: tracks,
+      source: MusicSource.youtube,
+    );
+  }
+}
+
+extension SpotifyAlbumExtension on spotify.AlbumSimple {
+  Album toOmniwaveAlbum() {
+    return Album(
+      id: id ?? 'UNKNOWN_ID',
+      name: name ?? 'Unknown album',
+      imageUrl: images?[0].url,
+      artists: artists
+              ?.where((element) => element.name != null)
+              .map((e) => e.name)
+              .toList()
+              .cast<String>() ??
+          ['Unknown artist'],
+      tracks: tracks
+              ?.map(
+                (track) => track.toOmniwaveTrack(
+                  albumId: id ?? 'UNKNOWN_ID',
+                  imageUrl: images?[0].url,
+                ),
+              )
+              .toList() ??
+          [],
+      source: MusicSource.spotify,
+    );
+  }
+}
+
+extension SpotifyTrackExtension on spotify.TrackSimple {
+  Track toOmniwaveTrack({required String albumId, String? imageUrl}) {
+    return Track(
+      id: id ?? 'UNKNOWN_ID',
+      name: name ?? 'Unknown track',
+      href: href ?? 'NO_TRACK_HREF_PROVIDED',
+      imageUrl: imageUrl,
+      artists: artists
+              ?.where((element) => element.name != null)
+              .map((e) => e.name)
+              .toList()
+              .cast<String>() ??
+          ['Unknown artist'],
+      duration: duration ?? Duration.zero,
+      source: MusicSource.spotify,
+      albumId: albumId,
+    );
+  }
+}
+
+extension YoutubeTrackExtension on yt.Video {
+  Track toOmniwaveTrack({required String albumId}) {
+    return Track(
+      id: id.value,
+      name: title,
+      href: url,
+      imageUrl: thumbnails.highResUrl,
+      artists: [author],
+      duration: duration ?? Duration.zero,
+      source: MusicSource.youtube,
+      albumId: albumId,
     );
   }
 }

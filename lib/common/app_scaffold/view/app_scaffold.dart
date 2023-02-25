@@ -62,9 +62,10 @@ class AppScaffoldView extends StatelessWidget {
               ),
 
               // TODO(sergsavchuk): add maximumSize parameter to Area
-              // TODO(sergsavchuk): make the gesture area larger than the divider
-              // thickness so it would be easier to drag very thin ones / or
-              // implement a custom DividerPainter that draws a thin line
+              // TODO(sergsavchuk): make the gesture area larger than the
+              // divider thickness so it would be easier to drag very thin
+              // ones / or implement a custom DividerPainter that draws a thin
+              // line
               child: MultiSplitView(
                 initialAreas: [
                   Area(minimalSize: 128, weight: 0.25),
@@ -82,25 +83,7 @@ class AppScaffoldView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const AppLogo(),
-                        BlocBuilder<AppScaffoldBloc, AppScaffoldState>(
-                          builder: (_, state) => state.spotifyConnected
-                              ? const SizedBox.shrink()
-                              : TextButton.icon(
-                                  onPressed: () =>
-                                      context.read<AppScaffoldBloc>().add(
-                                            AppScaffoldSpotifyConnectRequested(),
-                                          ),
-                                  icon: Icon(
-                                    state.spotifyConnected
-                                        ? Icons.link_off
-                                        : Icons.link,
-                                  ),
-                                  label: const Text(
-                                    'Connect Spotify',
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                        ),
+                        _spotifyConnectButton(),
                         TextButton(
                           onPressed: () async {},
                           child: const Text(
@@ -170,6 +153,25 @@ class AppScaffoldView extends StatelessWidget {
       ),
     );
   }
+
+  Widget _spotifyConnectButton() {
+    return BlocBuilder<AppScaffoldBloc, AppScaffoldState>(
+      builder: (context, state) => state.spotifyConnected
+          ? const SizedBox.shrink()
+          : TextButton.icon(
+              onPressed: () => context.read<AppScaffoldBloc>().add(
+                    AppScaffoldSpotifyConnectRequested(),
+                  ),
+              icon: Icon(
+                state.spotifyConnected ? Icons.link_off : Icons.link,
+              ),
+              label: const Text(
+                'Connect Spotify',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+    );
+  }
 }
 
 class PlayerControls extends StatelessWidget {
@@ -183,110 +185,112 @@ class PlayerControls extends StatelessWidget {
       height: 75,
       width: double.infinity,
       color: Colors.black,
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        BlocBuilder<PlayerBloc, PlayerState>(
-          buildWhen: (prev, curr) => prev.currentTrack != curr.currentTrack,
-          builder: (context, state) => Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (state.currentTrack != null)
-                Image.network(
-                  state.currentTrack?.imageUrl ?? 'default-image',
-                  width: 100,
-                  height: 100,
-                ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    state.currentTrack?.name ?? '',
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  Text(
-                    state.currentTrack?.artists.join(', ') ?? '',
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          BlocBuilder<PlayerBloc, PlayerState>(
+            buildWhen: (prev, curr) => prev.currentTrack != curr.currentTrack,
+            builder: (context, state) => Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                  onPressed: () => context
-                      .read<PlayerBloc>()
-                      .add(PlayerPrevTrackRequested()),
-                  icon: const Icon(
-                    Icons.skip_previous_rounded,
-                    size: 40,
+                if (state.currentTrack != null)
+                  Image.network(
+                    state.currentTrack?.imageUrl ?? 'default-image',
+                    width: 100,
+                    height: 100,
                   ),
-                  padding: EdgeInsets.zero,
-                  color: Colors.white,
-                ),
-                BlocBuilder<PlayerBloc, PlayerState>(
-                  buildWhen: (prev, curr) => prev.isPlaying != curr.isPlaying,
-                  builder: (context, state) {
-                    print("Building: " + state.isPlaying.toString());
-                    return IconButton(
-                      onPressed: () => context
-                          .read<PlayerBloc>()
-                          .add(PlayerToggleRequested()),
-                      icon: Icon(
-                        state.isPlaying
-                            ? Icons.pause_circle_filled
-                            : Icons.play_circle_fill,
-                        size: 40,
-                      ),
-                      padding: EdgeInsets.zero,
-                      color: Colors.white,
-                    );
-                  },
-                ),
-                IconButton(
-                  onPressed: () => context
-                      .read<PlayerBloc>()
-                      .add(PlayerNextTrackRequested()),
-                  icon: const Icon(
-                    Icons.skip_next_rounded,
-                    size: 40,
-                  ),
-                  padding: EdgeInsets.zero,
-                  color: Colors.white,
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      state.currentTrack?.name ?? '',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    Text(
+                      state.currentTrack?.artists.join(', ') ?? '',
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  ],
                 ),
               ],
             ),
-            SizedBox(
-              width: 400,
-              child: Stack(
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Divider(
-                    thickness: 2,
-                    color: Colors.grey,
+                  IconButton(
+                    onPressed: () => context
+                        .read<PlayerBloc>()
+                        .add(PlayerPrevTrackRequested()),
+                    icon: const Icon(
+                      Icons.skip_previous_rounded,
+                      size: 40,
+                    ),
+                    padding: EdgeInsets.zero,
+                    color: Colors.white,
                   ),
                   BlocBuilder<PlayerBloc, PlayerState>(
-                    buildWhen: (prev, curr) =>
-                        prev.playbackPosition != curr.playbackPosition,
-                    builder: (context, state) => Positioned(
-                      width: 400 * state.playbackProgress,
-                      child: const Divider(
-                        thickness: 2,
+                    buildWhen: (prev, curr) => prev.isPlaying != curr.isPlaying,
+                    builder: (context, state) {
+                      return IconButton(
+                        onPressed: () => context
+                            .read<PlayerBloc>()
+                            .add(PlayerToggleRequested()),
+                        icon: Icon(
+                          state.isPlaying
+                              ? Icons.pause_circle_filled
+                              : Icons.play_circle_fill,
+                          size: 40,
+                        ),
+                        padding: EdgeInsets.zero,
                         color: Colors.white,
-                      ),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    onPressed: () => context
+                        .read<PlayerBloc>()
+                        .add(PlayerNextTrackRequested()),
+                    icon: const Icon(
+                      Icons.skip_next_rounded,
+                      size: 40,
                     ),
+                    padding: EdgeInsets.zero,
+                    color: Colors.white,
                   ),
                 ],
               ),
-            )
-          ],
-        ),
-        const SizedBox.shrink(),
-      ]),
+              SizedBox(
+                width: 400,
+                child: Stack(
+                  children: [
+                    const Divider(
+                      thickness: 2,
+                      color: Colors.grey,
+                    ),
+                    BlocBuilder<PlayerBloc, PlayerState>(
+                      buildWhen: (prev, curr) =>
+                          prev.playbackPosition != curr.playbackPosition,
+                      builder: (context, state) => Positioned(
+                        width: 400 * state.playbackProgress,
+                        child: const Divider(
+                          thickness: 2,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
+          const SizedBox.shrink(),
+        ],
+      ),
     );
   }
 }

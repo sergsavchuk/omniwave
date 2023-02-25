@@ -1,9 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:music_repository/music_repository.dart';
-import 'package:spotify/spotify.dart' hide Track;
-import 'package:youtube_explode_dart/youtube_explode_dart.dart' as yt;
-
-const webProxyUrl = 'http://localhost:443/';
 
 class Album extends Equatable {
   const Album({
@@ -41,59 +37,5 @@ class Album extends Equatable {
   }
 
   @override
-  List<Object?> get props => [name, imageUrl, artists];
-}
-
-extension SpotifyAlbumExtension on AlbumSimple {
-  Album toOmniwaveAlbum() {
-    return Album(
-      id: id ?? 'UNKNOWN_ID',
-      name: name ?? 'Unknown album',
-      imageUrl: images?[0].url,
-      artists: artists
-              ?.where((element) => element.name != null)
-              .map((e) => e.name)
-              .toList()
-              .cast<String>() ??
-          ['Unknown artist'],
-      tracks: tracks
-              ?.map(
-                (track) => track.toOmniwaveTrack(
-                  albumId: id ?? 'UNKNOWN_ID',
-                  imageUrl: images?[0].url,
-                ),
-              )
-              .toList() ??
-          [],
-      source: MusicSource.spotify,
-    );
-  }
-}
-
-extension SearchPlaylistExtension on yt.SearchPlaylist {
-  Album toOmniwaveAlbum({required bool useProxy}) {
-    return Album(
-      id: playlistId.value,
-      name: playlistTitle,
-      imageUrl: thumbnails.isNotEmpty
-          ? (useProxy ? webProxyUrl : '') + thumbnails.last.url.toString()
-          : null,
-      artists: const ['TODO use yt Playlist'],
-      tracks: const [],
-      source: MusicSource.youtube,
-    );
-  }
-}
-
-extension PlaylistExtension on yt.Playlist {
-  Album toOmniwaveAlbum() {
-    return Album(
-      id: id.value,
-      name: title,
-      imageUrl: thumbnails.highResUrl,
-      artists: [author],
-      tracks: const [],
-      source: MusicSource.youtube,
-    );
-  }
+  List<Object?> get props => [id, name, imageUrl, artists, tracks, source];
 }

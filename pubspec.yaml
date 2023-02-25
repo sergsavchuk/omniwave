@@ -28,6 +28,8 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.1
+  just_audio: ^0.9.31
+  just_audio_mpv: ^0.1.6
   multi_split_view: ^2.2.0
   music_repository:
     path: packages/music_repository
