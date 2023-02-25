@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:music_repository/music_repository.dart';
 
 import 'package:omniwave/albums/albums.dart';
+import 'package:omniwave/bloc/app_settings_bloc.dart';
 import 'package:omniwave/common/album_card.dart';
 import 'package:omniwave/common/app_scaffold/app_scaffold.dart';
 
@@ -17,10 +18,10 @@ class AlbumsPage extends StatelessWidget {
     return AppScaffold(
       category: MusicItemCategory.albums,
       body: BlocProvider(
-        create: (_) =>
+        create: (context) =>
             AlbumsBloc(musicRepository: context.read<MusicRepository>())
               ..add(AlbumsStarted()),
-        child: BlocListener<AppScaffoldBloc, AppScaffoldState>(
+        child: BlocListener<AppSettingsBloc, AppSettingsState>(
           listenWhen: (prev, curr) =>
               prev.spotifyConnected != curr.spotifyConnected,
           listener: (context, __) =>

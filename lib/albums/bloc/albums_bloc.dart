@@ -24,7 +24,7 @@ class AlbumsBloc extends Bloc<AlbumsEvent, AlbumsState> {
 
     await for (final album in albumsStream) {
       albumsList.add(album);
-      emit(AlbumsState(albums: albumsList));
+      emit(AlbumsState(albums: List.of(albumsList)));
     }
   }
 }

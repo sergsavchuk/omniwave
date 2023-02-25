@@ -1,7 +1,7 @@
-part of 'app_scaffold_bloc.dart';
+part of 'app_settings_bloc.dart';
 
-class AppScaffoldState extends Equatable {
-  const AppScaffoldState({
+class AppSettingsState extends Equatable {
+  const AppSettingsState({
     this.spotifyConnected = false,
   });
 

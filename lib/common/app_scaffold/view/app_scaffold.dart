@@ -1,48 +1,78 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:multi_split_view/multi_split_view.dart';
-import 'package:music_repository/music_repository.dart';
 import 'package:omniwave/albums/albums.dart';
+import 'package:omniwave/bloc/app_settings_bloc.dart';
 import 'package:omniwave/common/app_logo.dart';
-import 'package:omniwave/common/app_scaffold/app_scaffold.dart';
+import 'package:omniwave/common/player_controls/player_controls.dart';
 import 'package:omniwave/playlists/playlists.dart';
 import 'package:omniwave/styles.dart';
 import 'package:omniwave/tracks/tracks.dart';
+import 'package:omniwave/utils.dart';
 
 enum MusicItemCategory {
-  albums('Albums'),
-  playlists('Playlists'),
-  tracks('Tracks');
+  albums('Albums', Icons.album_outlined, Icons.album_rounded),
+  playlists(
+    'Playlists',
+    Icons.playlist_play_outlined,
+    Icons.playlist_play_rounded,
+  ),
+  tracks('Tracks', Icons.audiotrack_outlined, Icons.audiotrack_rounded);
 
-  const MusicItemCategory(this.name);
+  const MusicItemCategory(this.name, this.icon, this.activeIcon);
 
   final String name;
+  final IconData icon;
+  final IconData activeIcon;
+
+  BottomNavigationBarItem asNavBarItem() {
+    return BottomNavigationBarItem(
+      icon: Icon(icon),
+      activeIcon: Icon(activeIcon),
+      label: name,
+    );
+  }
+
+  static void navigateTo(MusicItemCategory category, NavigatorState navigator) {
+    Route<void> route;
+    switch (category) {
+      case MusicItemCategory.albums:
+        route = AlbumsPage.route();
+        break;
+      case MusicItemCategory.playlists:
+        route = PlaylistsPage.route();
+        break;
+      case MusicItemCategory.tracks:
+        route = TracksPage.route();
+        break;
+    }
+
+    navigator.push(route);
+  }
 }
 
 class AppScaffold extends StatelessWidget {
-  const AppScaffold({super.key, this.body, required this.category});
+  const AppScaffold({super.key, required this.body, required this.category});
 
-  final Widget? body;
+  final Widget body;
   final MusicItemCategory category;
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (_) =>
-              AppScaffoldBloc(musicRepository: context.read<MusicRepository>()),
-        ),
-      ],
-      child: AppScaffoldView(body: body, category: category),
-    );
+    return Utils.isSmallScreen
+        ? SmallAppScaffoldView(body: body, category: category)
+        : AppScaffoldView(body: body, category: category);
   }
 }
 
 class AppScaffoldView extends StatelessWidget {
-  const AppScaffoldView({super.key, this.body, required this.category});
+  const AppScaffoldView({
+    super.key,
+    required this.body,
+    required this.category,
+  });
 
-  final Widget? body;
+  final Widget body;
   final MusicItemCategory category;
 
   @override
@@ -97,28 +127,16 @@ class AppScaffoldView extends StatelessWidget {
                           thickness: 0.5,
                         ),
                         CategoryButton(
-                          onPressed: () =>
-                              Navigator.of(context).push(AlbumsPage.route()),
                           category: MusicItemCategory.albums,
-                          icon: Icons.album_outlined,
-                          selectedIcon: Icons.album,
-                          selected: category == MusicItemCategory.albums,
+                          selectedCategory: category,
                         ),
                         CategoryButton(
-                          onPressed: () =>
-                              Navigator.of(context).push(PlaylistsPage.route()),
                           category: MusicItemCategory.playlists,
-                          icon: Icons.playlist_play_outlined,
-                          selectedIcon: Icons.playlist_play,
-                          selected: category == MusicItemCategory.playlists,
+                          selectedCategory: category,
                         ),
                         CategoryButton(
-                          onPressed: () =>
-                              Navigator.of(context).push(TracksPage.route()),
                           category: MusicItemCategory.tracks,
-                          icon: Icons.audiotrack_outlined,
-                          selectedIcon: Icons.audiotrack,
-                          selected: category == MusicItemCategory.tracks,
+                          selectedCategory: category,
                         ),
                       ],
                     ),
@@ -137,7 +155,7 @@ class AppScaffoldView extends StatelessWidget {
                         stops: const [0.0, 0.30],
                       ),
                     ),
-                    child: body ?? const SizedBox.shrink(),
+                    child: body,
                   )
                 ],
               ),
@@ -155,12 +173,12 @@ class AppScaffoldView extends StatelessWidget {
   }
 
   Widget _spotifyConnectButton() {
-    return BlocBuilder<AppScaffoldBloc, AppScaffoldState>(
+    return BlocBuilder<AppSettingsBloc, AppSettingsState>(
       builder: (context, state) => state.spotifyConnected
           ? const SizedBox.shrink()
           : TextButton.icon(
-              onPressed: () => context.read<AppScaffoldBloc>().add(
-                    AppScaffoldSpotifyConnectRequested(),
+              onPressed: () => context.read<AppSettingsBloc>().add(
+                    AppSettingsSpotifyConnectRequested(),
                   ),
               icon: Icon(
                 state.spotifyConnected ? Icons.link_off : Icons.link,
@@ -174,122 +192,54 @@ class AppScaffoldView extends StatelessWidget {
   }
 }
 
-class PlayerControls extends StatelessWidget {
-  const PlayerControls({
+class SmallAppScaffoldView extends StatelessWidget {
+  const SmallAppScaffoldView({
     super.key,
+    required this.body,
+    required this.category,
   });
+
+  final Widget body;
+  final MusicItemCategory category;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 75,
-      width: double.infinity,
-      color: Colors.black,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
         children: [
+          body,
           BlocBuilder<PlayerBloc, PlayerState>(
-            buildWhen: (prev, curr) => prev.currentTrack != curr.currentTrack,
-            builder: (context, state) => Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (state.currentTrack != null)
-                  Image.network(
-                    state.currentTrack?.imageUrl ?? 'default-image',
-                    width: 100,
-                    height: 100,
-                  ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      state.currentTrack?.name ?? '',
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    Text(
-                      state.currentTrack?.artists.join(', ') ?? '',
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    onPressed: () => context
-                        .read<PlayerBloc>()
-                        .add(PlayerPrevTrackRequested()),
-                    icon: const Icon(
-                      Icons.skip_previous_rounded,
-                      size: 40,
-                    ),
-                    padding: EdgeInsets.zero,
-                    color: Colors.white,
-                  ),
-                  BlocBuilder<PlayerBloc, PlayerState>(
-                    buildWhen: (prev, curr) => prev.isPlaying != curr.isPlaying,
-                    builder: (context, state) {
-                      return IconButton(
-                        onPressed: () => context
-                            .read<PlayerBloc>()
-                            .add(PlayerToggleRequested()),
-                        icon: Icon(
-                          state.isPlaying
-                              ? Icons.pause_circle_filled
-                              : Icons.play_circle_fill,
-                          size: 40,
-                        ),
-                        padding: EdgeInsets.zero,
-                        color: Colors.white,
-                      );
-                    },
-                  ),
-                  IconButton(
-                    onPressed: () => context
-                        .read<PlayerBloc>()
-                        .add(PlayerNextTrackRequested()),
-                    icon: const Icon(
-                      Icons.skip_next_rounded,
-                      size: 40,
-                    ),
-                    padding: EdgeInsets.zero,
-                    color: Colors.white,
-                  ),
-                ],
-              ),
-              SizedBox(
-                width: 400,
-                child: Stack(
-                  children: [
-                    const Divider(
-                      thickness: 2,
-                      color: Colors.grey,
-                    ),
-                    BlocBuilder<PlayerBloc, PlayerState>(
-                      buildWhen: (prev, curr) =>
-                          prev.playbackPosition != curr.playbackPosition,
-                      builder: (context, state) => Positioned(
-                        width: 400 * state.playbackProgress,
-                        child: const Divider(
-                          thickness: 2,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            ],
-          ),
-          const SizedBox.shrink(),
+            builder: (context, state) => state.currentTrack != null
+                ? const Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: SmallPlayerControls(),
+                  )
+                : const SizedBox.shrink(),
+          )
         ],
+      ),
+      floatingActionButton: BlocBuilder<AppSettingsBloc, AppSettingsState>(
+        builder: (context, state) => state.spotifyConnected
+            ? const SizedBox.shrink()
+            : FloatingActionButton(
+                child: const Icon(Icons.wifi_rounded),
+                onPressed: () => context.read<AppSettingsBloc>().add(
+                      AppSettingsSpotifyConnectRequested(),
+                    ),
+              ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: MusicItemCategory.values.indexOf(category),
+        onTap: (index) => MusicItemCategory.navigateTo(
+          MusicItemCategory.values.elementAt(index),
+          Navigator.of(context),
+        ),
+        items: MusicItemCategory.values
+            .map((category) => category.asNavBarItem())
+            .toList(),
       ),
     );
   }
@@ -298,26 +248,21 @@ class PlayerControls extends StatelessWidget {
 class CategoryButton extends StatelessWidget {
   const CategoryButton({
     super.key,
-    required this.onPressed,
     required this.category,
-    required this.selected,
-    required this.icon,
-    required this.selectedIcon,
-  });
+    required MusicItemCategory selectedCategory,
+  }) : isSelected = selectedCategory == category;
 
-  final VoidCallback onPressed;
   final MusicItemCategory category;
-  final bool selected;
-  final IconData icon;
-  final IconData selectedIcon;
+  final bool isSelected;
 
   @override
   Widget build(BuildContext context) {
     return TextButton.icon(
-      onPressed: onPressed,
-      icon: Icon(selected ? selectedIcon : icon),
+      onPressed: () =>
+          MusicItemCategory.navigateTo(category, Navigator.of(context)),
+      icon: Icon(isSelected ? category.activeIcon : category.icon),
       label: Text(category.name),
-      style: selected
+      style: isSelected
           ? Theme.of(context).textButtonTheme.style?.copyWith(
                 foregroundColor: const MaterialStatePropertyAll(Colors.white),
               )

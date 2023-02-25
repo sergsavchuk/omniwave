@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:music_repository/music_repository.dart';
 import 'package:omniwave/albums/albums.dart';
-import 'package:omniwave/common/app_scaffold/app_scaffold.dart';
+import 'package:omniwave/bloc/app_settings_bloc.dart';
+import 'package:omniwave/common/player_controls/player_controls.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +23,11 @@ class OmniwaveApp extends StatelessWidget {
       create: (_) => MusicRepository(useYoutubeProxy: kIsWeb),
       child: MultiBlocProvider(
         providers: [
+          BlocProvider(
+            create: (context) => AppSettingsBloc(
+              musicRepository: context.read<MusicRepository>(),
+            ),
+          ),
           BlocProvider<PlayerBloc>(
             create: (context) =>
                 PlayerBloc(musicRepository: context.read<MusicRepository>()),
@@ -33,6 +39,7 @@ class OmniwaveApp extends StatelessWidget {
           darkTheme: ThemeData(
             useMaterial3: true,
             primarySwatch: Colors.blue,
+            bottomNavigationBarTheme: const BottomNavigationBarThemeData(),
             textButtonTheme: TextButtonThemeData(
               style: ButtonStyle(
                 foregroundColor:

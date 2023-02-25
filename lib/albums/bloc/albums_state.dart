@@ -6,5 +6,5 @@ class AlbumsState extends Equatable {
   final List<Album> albums;
 
   @override
-  List<Object> get props => [...albums];
+  List<Object> get props => [albums];
 }

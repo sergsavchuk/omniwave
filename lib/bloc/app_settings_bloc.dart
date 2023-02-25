@@ -4,24 +4,24 @@ import 'package:equatable/equatable.dart';
 import 'package:music_repository/music_repository.dart';
 import 'package:omniwave/env/env.dart';
 
-part 'app_scaffold_event.dart';
+part 'app_settings_event.dart';
 
-part 'app_scaffold_state.dart';
+part 'app_settings_state.dart';
 
-class AppScaffoldBloc extends Bloc<AppScaffoldEvent, AppScaffoldState> {
-  AppScaffoldBloc({required MusicRepository musicRepository})
+class AppSettingsBloc extends Bloc<AppSettingsEvent, AppSettingsState> {
+  AppSettingsBloc({required MusicRepository musicRepository})
       : _musicRepository = musicRepository,
         super(
-          AppScaffoldState(spotifyConnected: musicRepository.spotifyConnected),
+          AppSettingsState(spotifyConnected: musicRepository.spotifyConnected),
         ) {
-    on<AppScaffoldSpotifyConnectRequested>(_spotifyConnectRequested);
+    on<AppSettingsSpotifyConnectRequested>(_spotifyConnectRequested);
   }
 
   final MusicRepository _musicRepository;
 
   FutureOr<void> _spotifyConnectRequested(
-    AppScaffoldSpotifyConnectRequested event,
-    Emitter<AppScaffoldState> emit,
+    AppSettingsSpotifyConnectRequested event,
+    Emitter<AppSettingsState> emit,
   ) async {
     if (_musicRepository.spotifyConnected) {
       return;
@@ -33,7 +33,7 @@ class AppScaffoldBloc extends Bloc<AppScaffoldEvent, AppScaffoldState> {
         Env.spotifyRedirectUrl,
       );
 
-      emit(const AppScaffoldState(spotifyConnected: true));
+      emit(const AppSettingsState(spotifyConnected: true));
     } catch (_) {
       // TODO(sergsavchuk): handle the error
     }
