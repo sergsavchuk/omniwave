@@ -20,12 +20,12 @@ class AlbumsPage extends StatelessWidget {
       body: BlocProvider(
         create: (context) =>
             AlbumsBloc(musicRepository: context.read<MusicRepository>())
-              ..add(AlbumsStarted()),
+              ..add(AlbumsLoadRequested()),
         child: BlocListener<AppSettingsBloc, AppSettingsState>(
           listenWhen: (prev, curr) =>
               prev.spotifyConnected != curr.spotifyConnected,
           listener: (context, __) =>
-              context.read<AlbumsBloc>().add(AlbumsStarted()),
+              context.read<AlbumsBloc>().add(AlbumsLoadRequested()),
           child: const AlbumsView(),
         ),
       ),

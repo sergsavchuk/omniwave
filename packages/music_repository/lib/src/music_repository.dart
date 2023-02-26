@@ -96,8 +96,6 @@ class MusicRepository {
     final manifest = await _youtube.videos.streams.getManifest(track.id);
     final audioStreamInfo = manifest.audioOnly.withHighestBitrate();
     return audioStreamInfo.url;
-    // final audioStream = _youtube.videos.streamsClient.get(audioStreamInfo);
-    // print(audioStreamInfo.toJson());
   }
 
   Future<void> spotifyPlay(Track track) {

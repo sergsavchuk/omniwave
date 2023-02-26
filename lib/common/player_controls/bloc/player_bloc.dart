@@ -36,13 +36,13 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     final tracks = state.currentTrackCollection!.tracks;
     if (state.currentTrack != null && tracks.indexOf(state.currentTrack!) > 0) {
       final track = tracks[tracks.indexOf(state.currentTrack!) - 1];
-      await _play(track);
       emit(
         state.copyWith(
           isPlaying: true,
           currentTrack: track,
         ),
       );
+      await _play(track);
     }
   }
 
@@ -58,7 +58,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     if (state.currentTrack != null &&
         tracks.indexOf(state.currentTrack!) < tracks.length - 1) {
       final track = tracks[tracks.indexOf(state.currentTrack!) + 1];
-      await _play(track);
       emit(
         state.copyWith(
           isPlaying: true,
@@ -66,6 +65,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           currentTrack: track,
         ),
       );
+      await _play(track);
     }
   }
 
@@ -84,7 +84,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) async {
     if (event.trackCollection != state.currentTrackCollection &&
         event.trackCollection.tracks.isNotEmpty) {
-      await _play(event.trackCollection.tracks[0]);
       emit(
         PlayerState(
           isPlaying: true,
@@ -92,6 +91,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           currentTrackCollection: event.trackCollection,
         ),
       );
+      await _play(event.trackCollection.tracks[0]);
     }
   }
 
@@ -255,7 +255,7 @@ class YoutubePlayer extends Player {
   Future<void> play(Track track) async {
     final uri = await _musicRepository.playYoutubeTrack(track);
     await _player.setAudioSource(AudioSource.uri(uri));
-    await _player.play();
+    unawaited(_player.play());
   }
 
   @override

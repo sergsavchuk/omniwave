@@ -4,7 +4,7 @@ abstract class AlbumsEvent extends Equatable {
   const AlbumsEvent();
 }
 
-class AlbumsStarted extends AlbumsEvent {
+class AlbumsLoadRequested extends AlbumsEvent {
   @override
   List<Object?> get props => [];
 }
