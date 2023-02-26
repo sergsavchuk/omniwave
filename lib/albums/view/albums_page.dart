@@ -4,7 +4,7 @@ import 'package:music_repository/music_repository.dart';
 
 import 'package:omniwave/albums/albums.dart';
 import 'package:omniwave/bloc/app_settings_bloc.dart';
-import 'package:omniwave/common/album_card.dart';
+import 'package:omniwave/common/track_collection_card.dart';
 import 'package:omniwave/common/app_scaffold/app_scaffold.dart';
 
 class AlbumsPage extends StatelessWidget {
