@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:music_repository/music_repository.dart';
-import 'package:omniwave/common/player_controls/player_controls.dart';
+import 'package:omniwave/common/app_scaffold/app_scaffold.dart';
 import 'package:omniwave/styles.dart';
+import 'package:omniwave/track_collection/track_collection.dart';
 import 'package:omniwave/utils.dart';
 
 class TrackCollectionCard extends StatefulWidget {
   const TrackCollectionCard({
     super.key,
     required this.trackCollection,
+    required this.category,
   });
 
   final TrackCollection trackCollection;
+  final MusicItemCategory category;
 
   @override
   State<TrackCollectionCard> createState() => _TrackCollectionCardState();
@@ -27,9 +29,12 @@ class _TrackCollectionCardState extends State<TrackCollectionCard> {
       onExit: (_) => setState(() => _hovered = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
-        onTap: () => context
-            .read<PlayerBloc>()
-            .add(PlayerTrackCollectionPlayRequested(widget.trackCollection)),
+        onTap: () => Navigator.of(context).push(
+          TrackCollectionPage.route(
+            widget.trackCollection,
+            widget.category,
+          ),
+        ),
         child: Card(
           clipBehavior: Clip.antiAlias,
           color: Theme.of(context).colorScheme.primaryContainer,

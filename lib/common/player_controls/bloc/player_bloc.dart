@@ -15,7 +15,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       : _musicRepository = musicRepository,
         super(const PlayerState()) {
     on<PlayerToggleRequested>(_toggleRequested);
-    on<PlayerTrackCollectionPlayRequested>(_albumPlayRequested);
+    on<PlayerTrackPlayRequested>(_trackPlayRequested);
     on<PlayerPlaybackPositionChanged>(_playbackPositionChanged);
     on<PlayerNextTrackRequested>(_nextTrackRequested);
     on<PlayerPrevTrackRequested>(_prevTrackRequested);
@@ -78,20 +78,19 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     }
   }
 
-  FutureOr<void> _albumPlayRequested(
-    PlayerTrackCollectionPlayRequested event,
+  FutureOr<void> _trackPlayRequested(
+    PlayerTrackPlayRequested event,
     Emitter<PlayerState> emit,
   ) async {
-    if (event.trackCollection != state.currentTrackCollection &&
-        event.trackCollection.tracks.isNotEmpty) {
+    if (event.track != state.currentTrack) {
       emit(
         PlayerState(
           isPlaying: true,
-          currentTrack: event.trackCollection.tracks[0],
+          currentTrack: event.track,
           currentTrackCollection: event.trackCollection,
         ),
       );
-      await _play(event.trackCollection.tracks[0]);
+      await _play(event.track);
     }
   }
 

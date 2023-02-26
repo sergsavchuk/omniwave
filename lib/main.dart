@@ -38,8 +38,9 @@ class OmniwaveApp extends StatelessWidget {
           themeMode: ThemeMode.dark,
           darkTheme: ThemeData(
             useMaterial3: true,
-            primarySwatch: Colors.blue,
-            bottomNavigationBarTheme: const BottomNavigationBarThemeData(),
+            colorScheme: ColorScheme.fromSwatch(
+              brightness: Brightness.dark,
+            ),
             textButtonTheme: TextButtonThemeData(
               style: ButtonStyle(
                 foregroundColor:

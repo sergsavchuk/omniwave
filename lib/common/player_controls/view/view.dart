@@ -1,1 +1,1 @@
-export './player_controls_page.dart';
+export './player_controls.dart';

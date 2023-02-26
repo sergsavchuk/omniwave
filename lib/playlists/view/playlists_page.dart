@@ -38,7 +38,12 @@ class PlaylistsView extends StatelessWidget {
           crossAxisCount: Utils.isSmallScreen ? 2 : 4,
           childAspectRatio: Utils.isSmallScreen ? 2 : 0.75,
           children: state.playlists
-              .map((playlist) => TrackCollectionCard(trackCollection: playlist))
+              .map(
+                (playlist) => TrackCollectionCard(
+                  trackCollection: playlist,
+                  category: MusicItemCategory.playlists,
+                ),
+              )
               .toList(),
         );
       },

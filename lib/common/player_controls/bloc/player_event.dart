@@ -9,13 +9,14 @@ class PlayerToggleRequested extends PlayerEvent {
   List<Object?> get props => [];
 }
 
-class PlayerTrackCollectionPlayRequested extends PlayerEvent {
-  const PlayerTrackCollectionPlayRequested(this.trackCollection);
+class PlayerTrackPlayRequested extends PlayerEvent {
+  const PlayerTrackPlayRequested(this.track, {this.trackCollection});
 
-  final TrackCollection trackCollection;
+  final Track track;
+  final TrackCollection? trackCollection;
 
   @override
-  List<Object?> get props => [trackCollection];
+  List<Object?> get props => [track, trackCollection];
 }
 
 class PlayerPlaybackPositionChanged extends PlayerEvent {

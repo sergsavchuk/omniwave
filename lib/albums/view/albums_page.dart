@@ -44,7 +44,12 @@ class AlbumsView extends StatelessWidget {
           crossAxisCount: Utils.isSmallScreen ? 2 : 4,
           childAspectRatio: Utils.isSmallScreen ? 2 : 0.75,
           children: state.albums
-              .map((album) => TrackCollectionCard(trackCollection: album))
+              .map(
+                (album) => TrackCollectionCard(
+                  trackCollection: album,
+                  category: MusicItemCategory.albums,
+                ),
+              )
               .toList(),
         );
       },
