@@ -4,23 +4,23 @@ import 'package:music_repository/music_repository.dart';
 import 'package:omniwave/common/player_controls/player_controls.dart';
 import 'package:omniwave/styles.dart';
 
-class AlbumCard extends StatefulWidget {
-  const AlbumCard({
+class TrackCollectionCard extends StatefulWidget {
+  const TrackCollectionCard({
     super.key,
-    required this.album,
+    required this.trackCollection,
   });
 
-  final Album album;
+  final TrackCollection trackCollection;
 
   @override
-  State<AlbumCard> createState() => _AlbumCardState();
+  State<TrackCollectionCard> createState() => _TrackCollectionCardState();
 }
 
-class _AlbumCardState extends State<AlbumCard> {
+class _TrackCollectionCardState extends State<TrackCollectionCard> {
   bool _hovered = false;
 
-  String _albumUrl(String? url) =>
-      widget.album.imageUrl ?? 'some-default-image-url';
+  String _trackCollectionImage(String? url) =>
+      widget.trackCollection.imageUrl ?? 'some-default-image-url';
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +31,7 @@ class _AlbumCardState extends State<AlbumCard> {
       child: GestureDetector(
         onTap: () => context
             .read<PlayerBloc>()
-            .add(PlayerAlbumPlayRequested(widget.album)),
+            .add(PlayerTrackCollectionPlayRequested(widget.trackCollection)),
         child: Card(
           color: Theme.of(context).colorScheme.primaryContainer,
           child: Padding(
@@ -47,7 +47,9 @@ class _AlbumCardState extends State<AlbumCard> {
                         child: AspectRatio(
                           aspectRatio: 1,
                           child: Image.network(
-                            _albumUrl(widget.album.imageUrl),
+                            _trackCollectionImage(
+                              widget.trackCollection.imageUrl,
+                            ),
                             fit: BoxFit.fitHeight,
                           ),
                         ),
@@ -69,7 +71,7 @@ class _AlbumCardState extends State<AlbumCard> {
                   height: Insets.small,
                 ),
                 Text(
-                  widget.album.name,
+                  widget.trackCollection.name,
                   softWrap: false,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -81,7 +83,7 @@ class _AlbumCardState extends State<AlbumCard> {
                   height: Insets.small,
                 ),
                 Text(
-                  widget.album.artists.join(', '),
+                  widget.trackCollection.artists.join(', '),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],

@@ -1,34 +1,12 @@
-import 'package:equatable/equatable.dart';
-import 'package:music_repository/music_repository.dart';
+import 'package:music_repository/src/models/track_collection.dart';
 
-class Playlist extends Equatable {
+class Playlist extends TrackCollection {
   const Playlist({
-    required this.id,
-    required this.name,
-    required this.artists,
-    required this.tracks,
-    required this.source,
-    this.imageUrl,
+    required super.id,
+    required super.name,
+    required super.artists,
+    required super.tracks,
+    required super.source,
+    super.imageUrl,
   });
-
-  final String id;
-  final String name;
-  final List<String> artists;
-  final List<Track> tracks;
-  final MusicSource source;
-  final String? imageUrl;
-
-  Album toAlbum() {
-    return Album(
-      id: id,
-      name: name,
-      artists: artists,
-      tracks: tracks,
-      source: source,
-      imageUrl: imageUrl,
-    );
-  }
-
-  @override
-  List<Object?> get props => [id, name, artists, tracks, source, imageUrl];
 }

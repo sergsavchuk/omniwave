@@ -6,14 +6,14 @@ class PlayerState extends Equatable {
     this.isPlaying = false,
     this.playbackPosition = Duration.zero,
     this.currentTrack,
-    this.currentAlbum,
+    this.currentTrackCollection,
   });
 
   final bool isPlaying;
   final Duration playbackPosition;
 
   final Track? currentTrack;
-  final Album? currentAlbum;
+  final TrackCollection? currentTrackCollection;
 
   double get playbackProgress => currentTrack == null ||
           currentTrack?.duration == Duration.zero
@@ -24,16 +24,17 @@ class PlayerState extends Equatable {
     bool? isPlaying,
     Duration? playbackPosition,
     Track? currentTrack,
-    Album? currentAlbum,
+    TrackCollection? currentTrackCollection,
   }) =>
       PlayerState(
         isPlaying: isPlaying ?? this.isPlaying,
         playbackPosition: playbackPosition ?? this.playbackPosition,
         currentTrack: currentTrack ?? this.currentTrack,
-        currentAlbum: currentAlbum ?? this.currentAlbum,
+        currentTrackCollection:
+            currentTrackCollection ?? this.currentTrackCollection,
       );
 
   @override
   List<Object?> get props =>
-      [isPlaying, currentTrack, currentAlbum, playbackPosition];
+      [isPlaying, currentTrack, currentTrackCollection, playbackPosition];
 }

@@ -43,8 +43,9 @@ class AlbumsView extends StatelessWidget {
         return GridView.count(
           crossAxisCount: 4,
           childAspectRatio: 0.75,
-          children:
-              state.albums.map((album) => AlbumCard(album: album)).toList(),
+          children: state.albums
+              .map((album) => TrackCollectionCard(trackCollection: album))
+              .toList(),
         );
       },
     );

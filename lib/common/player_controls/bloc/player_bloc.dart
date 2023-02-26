@@ -15,7 +15,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       : _musicRepository = musicRepository,
         super(const PlayerState()) {
     on<PlayerToggleRequested>(_toggleRequested);
-    on<PlayerAlbumPlayRequested>(_albumPlayRequested);
+    on<PlayerTrackCollectionPlayRequested>(_albumPlayRequested);
     on<PlayerPlaybackPositionChanged>(_playbackPositionChanged);
     on<PlayerNextTrackRequested>(_nextTrackRequested);
     on<PlayerPrevTrackRequested>(_prevTrackRequested);
@@ -29,11 +29,11 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     PlayerPrevTrackRequested event,
     Emitter<PlayerState> emit,
   ) async {
-    if (state.currentAlbum == null) {
+    if (state.currentTrackCollection == null) {
       return null;
     }
 
-    final tracks = state.currentAlbum!.tracks;
+    final tracks = state.currentTrackCollection!.tracks;
     if (state.currentTrack != null && tracks.indexOf(state.currentTrack!) > 0) {
       final track = tracks[tracks.indexOf(state.currentTrack!) - 1];
       await _play(track);
@@ -50,11 +50,11 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     PlayerNextTrackRequested event,
     Emitter<PlayerState> emit,
   ) async {
-    if (state.currentAlbum == null) {
+    if (state.currentTrackCollection == null) {
       return null;
     }
 
-    final tracks = state.currentAlbum!.tracks;
+    final tracks = state.currentTrackCollection!.tracks;
     if (state.currentTrack != null &&
         tracks.indexOf(state.currentTrack!) < tracks.length - 1) {
       final track = tracks[tracks.indexOf(state.currentTrack!) + 1];
@@ -79,16 +79,17 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   FutureOr<void> _albumPlayRequested(
-    PlayerAlbumPlayRequested event,
+    PlayerTrackCollectionPlayRequested event,
     Emitter<PlayerState> emit,
   ) async {
-    if (event.album != state.currentAlbum && event.album.tracks.isNotEmpty) {
-      await _play(event.album.tracks[0]);
+    if (event.trackCollection != state.currentTrackCollection &&
+        event.trackCollection.tracks.isNotEmpty) {
+      await _play(event.trackCollection.tracks[0]);
       emit(
         PlayerState(
           isPlaying: true,
-          currentTrack: event.album.tracks[0],
-          currentAlbum: event.album,
+          currentTrack: event.trackCollection.tracks[0],
+          currentTrackCollection: event.trackCollection,
         ),
       );
     }
