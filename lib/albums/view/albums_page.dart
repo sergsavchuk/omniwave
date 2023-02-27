@@ -3,8 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:music_repository/music_repository.dart';
 import 'package:omniwave/albums/albums.dart';
 import 'package:omniwave/bloc/app_settings_bloc.dart';
-import 'package:omniwave/common/app_scaffold/app_scaffold.dart';
-import 'package:omniwave/common/track_collection_card.dart';
+import 'package:omniwave/common/common.dart';
 import 'package:omniwave/utils.dart';
 
 class AlbumsPage extends StatelessWidget {
@@ -20,12 +19,12 @@ class AlbumsPage extends StatelessWidget {
       body: BlocProvider(
         create: (context) =>
             AlbumsBloc(musicRepository: context.read<MusicRepository>())
-              ..add(AlbumsLoadRequested()),
+              ..add(const AlbumsPageLoadRequested(0)),
         child: BlocListener<AppSettingsBloc, AppSettingsState>(
           listenWhen: (prev, curr) =>
               prev.spotifyConnected != curr.spotifyConnected,
           listener: (context, __) =>
-              context.read<AlbumsBloc>().add(AlbumsLoadRequested()),
+              context.read<AlbumsBloc>().add(const AlbumsPageLoadRequested(0)),
           child: const AlbumsView(),
         ),
       ),
@@ -40,7 +39,15 @@ class AlbumsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AlbumsBloc, AlbumsState>(
       builder: (context, state) {
-        return GridView.count(
+        return GridWithPagination(
+          loadingNextPage: state.loadingNextPage,
+          onGridEndReached: () {
+            if (!state.loadingNextPage) {
+              context.read<AlbumsBloc>().add(
+                    AlbumsPageLoadRequested(state.albums.length),
+                  );
+            }
+          },
           crossAxisCount: Utils.isSmallScreen ? 2 : 4,
           childAspectRatio: Utils.isSmallScreen ? 2 : 0.75,
           children: state.albums

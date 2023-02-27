@@ -11,21 +11,36 @@ part 'playlists_state.dart';
 class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
   PlaylistsBloc({required this.musicRepository})
       : super(const PlaylistsState()) {
-    on<PlaylistsLoadRequested>(_loadRequested);
+    on<PlaylistsPageLoadRequested>(_loadRequested);
   }
 
   final MusicRepository musicRepository;
 
   FutureOr<void> _loadRequested(
-    PlaylistsLoadRequested event,
+    PlaylistsPageLoadRequested event,
     Emitter<PlaylistsState> emit,
   ) async {
-    final playlistStream = musicRepository.loadPlaylists();
-    final playlistList = <Playlist>[];
+    if (event.offset < state.playlists.length) {
+      return;
+    }
+
+    emit(PlaylistsState(playlists: state.playlists, loadingNextPage: true));
+
+    // TODO(sergsavchuk): load playlists instead of the youtube search
+    final playlistStream =
+        musicRepository.searchYoutubePlaylists('Radiohead album');
+    final playlistList = List.of(state.playlists);
 
     await for (final playlist in playlistStream) {
       playlistList.add(playlist);
-      emit(PlaylistsState(playlists: List.of(playlistList)));
+      emit(
+        PlaylistsState(
+          playlists: List.of(playlistList),
+          loadingNextPage: true,
+        ),
+      );
     }
+
+    emit(PlaylistsState(playlists: state.playlists));
   }
 }

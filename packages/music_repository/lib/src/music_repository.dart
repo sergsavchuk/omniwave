@@ -56,29 +56,23 @@ class MusicRepository {
     _spotifyApi = spotify.SpotifyApi.withAccessToken(accessToken);
   }
 
-  Stream<Album> loadAlbums() async* {
+  Stream<Album> loadAlbumsPage(int offset) async* {
     if (_spotifyApi != null) {
       const pageSize = 20;
-      var offset = 0;
-      spotify.Page<spotify.AlbumSimple> page;
-      while (!(page =
-              await _spotifyApi!.me.savedAlbums().getPage(pageSize, offset))
-          .isLast) {
-        final spotifyAlbums = page.items;
-        if (spotifyAlbums != null) {
-          for (final spotifyAlbum in spotifyAlbums) {
-            yield spotifyAlbum.toOmniwaveAlbum();
-          }
+      final page =
+          await _spotifyApi!.me.savedAlbums().getPage(pageSize, offset);
+      final spotifyAlbums = page.items;
+      if (spotifyAlbums != null) {
+        for (final spotifyAlbum in spotifyAlbums) {
+          yield spotifyAlbum.toOmniwaveAlbum();
         }
-
-        offset += pageSize;
       }
     }
   }
 
-  Stream<Playlist> loadPlaylists() async* {
+  Stream<Playlist> searchYoutubePlaylists(String searchQuery) async* {
     final searchList = await _youtube.search
-        .searchContent('Radiohead album', filter: yt.TypeFilters.playlist);
+        .searchContent(searchQuery, filter: yt.TypeFilters.playlist);
 
     for (final searchItem in searchList) {
       final playlistId = (searchItem as yt.SearchPlaylist).playlistId.value;

@@ -10,21 +10,29 @@ part 'albums_state.dart';
 
 class AlbumsBloc extends Bloc<AlbumsEvent, AlbumsState> {
   AlbumsBloc({required this.musicRepository}) : super(const AlbumsState()) {
-    on<AlbumsLoadRequested>(_loadRequested);
+    on<AlbumsPageLoadRequested>(_loadRequested);
   }
 
   final MusicRepository musicRepository;
 
   FutureOr<void> _loadRequested(
-    AlbumsLoadRequested event,
+    AlbumsPageLoadRequested event,
     Emitter<AlbumsState> emit,
   ) async {
-    final albumStream = musicRepository.loadAlbums();
-    final albumList = <Album>[];
+    if (event.offset < state.albums.length) {
+      return;
+    }
+
+    emit(AlbumsState(albums: state.albums, loadingNextPage: true));
+
+    final albumStream = musicRepository.loadAlbumsPage(event.offset);
+    final albumList = List.of(state.albums);
 
     await for (final album in albumStream) {
       albumList.add(album);
-      emit(AlbumsState(albums: List.of(albumList)));
+      emit(AlbumsState(albums: List.of(albumList), loadingNextPage: true));
     }
+
+    emit(AlbumsState(albums: state.albums));
   }
 }

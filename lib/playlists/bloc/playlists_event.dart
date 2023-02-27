@@ -4,7 +4,11 @@ abstract class PlaylistsEvent extends Equatable {
   const PlaylistsEvent();
 }
 
-class PlaylistsLoadRequested extends PlaylistsEvent {
+class PlaylistsPageLoadRequested extends PlaylistsEvent {
+  const PlaylistsPageLoadRequested(this.offset);
+
+  final int offset;
+
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [offset];
 }

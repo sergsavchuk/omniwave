@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:music_repository/music_repository.dart';
-import 'package:omniwave/common/app_scaffold/app_scaffold.dart';
-import 'package:omniwave/common/track_collection_card.dart';
+import 'package:omniwave/common/common.dart';
 
 import 'package:omniwave/playlists/playlists.dart';
 import 'package:omniwave/utils.dart';
@@ -20,7 +19,7 @@ class PlaylistsPage extends StatelessWidget {
       body: BlocProvider(
         create: (context) =>
             PlaylistsBloc(musicRepository: context.read<MusicRepository>())
-              ..add(PlaylistsLoadRequested()),
+              ..add(const PlaylistsPageLoadRequested(0)),
         child: const PlaylistsView(),
       ),
     );
@@ -34,9 +33,17 @@ class PlaylistsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<PlaylistsBloc, PlaylistsState>(
       builder: (context, state) {
-        return GridView.count(
+        return GridWithPagination(
           crossAxisCount: Utils.isSmallScreen ? 2 : 4,
           childAspectRatio: Utils.isSmallScreen ? 2 : 0.75,
+          onGridEndReached: () {
+            if (!state.loadingNextPage) {
+              context
+                  .read<PlaylistsBloc>()
+                  .add(PlaylistsPageLoadRequested(state.playlists.length));
+            }
+          },
+          loadingNextPage: state.loadingNextPage,
           children: state.playlists
               .map(
                 (playlist) => TrackCollectionCard(

@@ -4,7 +4,11 @@ abstract class AlbumsEvent extends Equatable {
   const AlbumsEvent();
 }
 
-class AlbumsLoadRequested extends AlbumsEvent {
+class AlbumsPageLoadRequested extends AlbumsEvent {
+  const AlbumsPageLoadRequested(this.offset);
+
+  final int offset;
+
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [offset];
 }
