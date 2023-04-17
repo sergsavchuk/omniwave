@@ -1,3 +1,4 @@
+/// Music repository.
 library music_repository;
 
 export 'src/models/models.dart';

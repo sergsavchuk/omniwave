@@ -1,5 +1,7 @@
 import 'dart:developer';
 
+import 'package:authentication_repository/authentication_repository.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,25 +9,46 @@ import 'package:music_repository/music_repository.dart';
 import 'package:omniwave/albums/albums.dart';
 import 'package:omniwave/bloc/app_settings_bloc.dart';
 import 'package:omniwave/common/player_controls/player_controls.dart';
+import 'package:omniwave/firebase_options.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Bloc.observer = OmniwaveAppBlocObserver();
-  runApp(const OmniwaveApp());
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  final authRepository = AuthenticationRepository();
+  await authRepository.anonymousAuth();
+  await authRepository.userStream.first;
+
+  runApp(OmniwaveApp(authenticationRepository: authRepository));
 }
 
 class OmniwaveApp extends StatelessWidget {
-  const OmniwaveApp({super.key});
+  const OmniwaveApp({
+    super.key,
+    required AuthenticationRepository authenticationRepository,
+  }) : _authenticationRepository = authenticationRepository;
+
+  final AuthenticationRepository _authenticationRepository;
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider(
-      create: (_) => MusicRepository(useYoutubeProxy: kIsWeb),
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider(
+          create: (_) => MusicRepository(useYoutubeProxy: kIsWeb),
+        ),
+        RepositoryProvider.value(value: _authenticationRepository),
+      ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
             create: (context) => AppSettingsBloc(
               musicRepository: context.read<MusicRepository>(),
+              authenticationRepository: _authenticationRepository,
             ),
           ),
           BlocProvider<PlayerBloc>(

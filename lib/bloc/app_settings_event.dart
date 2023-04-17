@@ -8,3 +8,12 @@ class AppSettingsSpotifyConnectRequested extends AppSettingsEvent {
   @override
   List<Object?> get props => [];
 }
+
+class _AppSettingsUserChanged extends AppSettingsEvent {
+  const _AppSettingsUserChanged(this.user);
+
+  final User user;
+
+  @override
+  List<Object?> get props => [user];
+}

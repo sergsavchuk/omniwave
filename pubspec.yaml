@@ -22,9 +22,12 @@ environment:
   flutter: '>=3.7.0'
 
 dependencies:
+  authentication_repository:
+    path: packages/authentication_repository
   bloc: ^8.1.0
   envied: ^0.3.0
   equatable: ^2.0.5
+  firebase_core: ^2.9.0
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.1
