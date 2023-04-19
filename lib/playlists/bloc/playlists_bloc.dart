@@ -24,23 +24,6 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
       return;
     }
 
-    emit(PlaylistsState(playlists: state.playlists, loadingNextPage: true));
-
-    // TODO(sergsavchuk): load playlists instead of the youtube search
-    final playlistStream =
-        musicRepository.searchYoutubePlaylists('Radiohead album');
-    final playlistList = List.of(state.playlists);
-
-    await for (final playlist in playlistStream) {
-      playlistList.add(playlist);
-      emit(
-        PlaylistsState(
-          playlists: List.of(playlistList),
-          loadingNextPage: true,
-        ),
-      );
-    }
-
-    emit(PlaylistsState(playlists: state.playlists));
+    // TODO(sergsavchuk): load playlists
   }
 }
