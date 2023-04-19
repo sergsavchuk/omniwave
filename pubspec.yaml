@@ -25,6 +25,7 @@ dependencies:
   authentication_repository:
     path: packages/authentication_repository
   bloc: ^8.1.0
+  bloc_concurrency: ^0.2.1
   envied: ^0.3.0
   equatable: ^2.0.5
   firebase_core: ^2.9.0
@@ -36,6 +37,7 @@ dependencies:
   multi_split_view: ^2.2.0
   music_repository:
     path: packages/music_repository
+  rxdart: ^0.27.7
   shared_preferences: ^2.0.17
 
 dev_dependencies:

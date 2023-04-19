@@ -21,6 +21,7 @@ class GridWithPagination extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.count(
+      padding: EdgeInsets.zero,
       controller: _scrollController
         ..addListener(() {
           if (_scrollController.position.maxScrollExtent ==

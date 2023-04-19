@@ -70,19 +70,29 @@ class MusicRepository {
     }
   }
 
-  Stream<Playlist> searchYoutubePlaylists(String searchQuery) async* {
-    final searchList = await _youtube.search
-        .searchContent(searchQuery, filter: yt.TypeFilters.playlist);
+  // TODO(sergsavchuk): add Spotify search
+  Stream<SearchResult<Object>> search(String searchQuery) async* {
+    final searchList = await _youtube.search.searchContent(searchQuery);
 
     for (final searchItem in searchList) {
-      final playlistId = (searchItem as yt.SearchPlaylist).playlistId.value;
-      final tracks = await _youtube.playlists
-          .getVideos(playlistId)
-          .map((event) => event.toOmniwaveTrack(albumId: playlistId))
-          .toList();
+      if (searchItem is yt.SearchPlaylist) {
+        final playlistId = searchItem.playlistId.value;
+        final tracks = await _youtube.playlists
+            .getVideos(playlistId)
+            .map((event) => event.toOmniwaveTrack(albumId: playlistId))
+            .toList();
 
-      yield (await _youtube.playlists.get(playlistId))
-          .toOmniwavePlaylist(tracks);
+        // TODO(sergsavchuk): don't load playlist - use data from the searchItem
+        yield SearchResult(
+          (await _youtube.playlists.get(playlistId)).toOmniwavePlaylist(tracks),
+        );
+      } else if (searchItem is yt.SearchVideo) {
+        final videoId = searchItem.id.value;
+        // TODO(sergsavchuk): don't load video - use data from the searchItem
+        final video = await _youtube.videos.get(videoId);
+
+        yield SearchResult(video.toOmniwaveTrack(albumId: 'no-album'));
+      }
     }
   }
 

@@ -6,6 +6,7 @@ import 'package:omniwave/bloc/app_settings_bloc.dart';
 import 'package:omniwave/common/app_logo.dart';
 import 'package:omniwave/common/player_controls/player_controls.dart';
 import 'package:omniwave/playlists/playlists.dart';
+import 'package:omniwave/search/search.dart';
 import 'package:omniwave/styles.dart';
 import 'package:omniwave/tracks/tracks.dart';
 import 'package:omniwave/utils.dart';
@@ -17,7 +18,8 @@ enum MusicItemCategory {
     Icons.playlist_play_outlined,
     Icons.playlist_play_rounded,
   ),
-  tracks('Tracks', Icons.audiotrack_outlined, Icons.audiotrack_rounded);
+  tracks('Tracks', Icons.audiotrack_outlined, Icons.audiotrack_rounded),
+  search('Search', Icons.search_outlined, Icons.search_rounded);
 
   const MusicItemCategory(this.name, this.icon, this.activeIcon);
 
@@ -44,6 +46,9 @@ enum MusicItemCategory {
         break;
       case MusicItemCategory.tracks:
         route = TracksPage.route();
+        break;
+      case MusicItemCategory.search:
+        route = SearchPage.route();
         break;
     }
 
@@ -205,21 +210,23 @@ class SmallAppScaffoldView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          body,
-          BlocBuilder<PlayerBloc, PlayerState>(
-            builder: (context, state) => state.currentTrack != null
-                ? const Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: SmallPlayerControls(),
-                  )
-                : const SizedBox.shrink(),
-          )
-        ],
+      body: SafeArea(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            body,
+            BlocBuilder<PlayerBloc, PlayerState>(
+              builder: (context, state) => state.currentTrack != null
+                  ? const Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: SmallPlayerControls(),
+                    )
+                  : const SizedBox.shrink(),
+            )
+          ],
+        ),
       ),
       floatingActionButton: BlocBuilder<AppSettingsBloc, AppSettingsState>(
         builder: (context, state) => state.spotifyConnected
