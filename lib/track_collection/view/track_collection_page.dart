@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:music_repository/music_repository.dart';
 
 import 'package:omniwave/common/app_scaffold/app_scaffold.dart';
-import 'package:omniwave/common/player_controls/bloc/player_bloc.dart';
+import 'package:omniwave/common/player/bloc/player_bloc.dart';
 import 'package:omniwave/styles.dart';
 import 'package:omniwave/track_collection/track_collection.dart';
 import 'package:omniwave/utils.dart';

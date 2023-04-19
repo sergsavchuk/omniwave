@@ -8,7 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:music_repository/music_repository.dart';
 import 'package:omniwave/albums/albums.dart';
 import 'package:omniwave/bloc/app_settings_bloc.dart';
-import 'package:omniwave/common/player_controls/player_controls.dart';
+import 'package:omniwave/common/player/player_controls.dart';
 import 'package:omniwave/firebase_options.dart';
 
 void main() async {

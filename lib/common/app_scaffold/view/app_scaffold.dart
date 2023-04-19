@@ -4,7 +4,7 @@ import 'package:multi_split_view/multi_split_view.dart';
 import 'package:omniwave/albums/albums.dart';
 import 'package:omniwave/bloc/app_settings_bloc.dart';
 import 'package:omniwave/common/app_logo.dart';
-import 'package:omniwave/common/player_controls/player_controls.dart';
+import 'package:omniwave/common/player/player_controls.dart';
 import 'package:omniwave/playlists/playlists.dart';
 import 'package:omniwave/profile/profile.dart';
 import 'package:omniwave/search/search.dart';
