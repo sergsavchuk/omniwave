@@ -6,6 +6,7 @@ import 'package:omniwave/bloc/app_settings_bloc.dart';
 import 'package:omniwave/common/app_logo.dart';
 import 'package:omniwave/common/player_controls/player_controls.dart';
 import 'package:omniwave/playlists/playlists.dart';
+import 'package:omniwave/profile/profile.dart';
 import 'package:omniwave/search/search.dart';
 import 'package:omniwave/styles.dart';
 import 'package:omniwave/tracks/tracks.dart';
@@ -19,7 +20,8 @@ enum MusicItemCategory {
     Icons.playlist_play_rounded,
   ),
   tracks('Tracks', Icons.audiotrack_outlined, Icons.audiotrack_rounded),
-  search('Search', Icons.search_outlined, Icons.search_rounded);
+  search('Search', Icons.search_outlined, Icons.search_rounded),
+  profile('Profile', Icons.person_outline, Icons.person);
 
   const MusicItemCategory(this.name, this.icon, this.activeIcon);
 
@@ -49,6 +51,9 @@ enum MusicItemCategory {
         break;
       case MusicItemCategory.search:
         route = SearchPage.route();
+        break;
+      case MusicItemCategory.profile:
+        route = ProfilePage.route();
         break;
     }
 
@@ -227,16 +232,6 @@ class SmallAppScaffoldView extends StatelessWidget {
             )
           ],
         ),
-      ),
-      floatingActionButton: BlocBuilder<AppSettingsBloc, AppSettingsState>(
-        builder: (context, state) => state.spotifyConnected
-            ? const SizedBox.shrink()
-            : FloatingActionButton(
-                child: const Icon(Icons.wifi_rounded),
-                onPressed: () => context.read<AppSettingsBloc>().add(
-                      AppSettingsSpotifyConnectRequested(),
-                    ),
-              ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: MusicItemCategory.values.indexOf(category),
