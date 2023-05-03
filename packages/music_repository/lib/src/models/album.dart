@@ -7,6 +7,6 @@ class Album extends TrackCollection {
     required super.artists,
     required super.tracks,
     required super.source,
-    super.imageUrl,
+    required super.imageUrl,
   });
 }

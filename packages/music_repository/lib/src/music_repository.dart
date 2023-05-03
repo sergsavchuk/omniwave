@@ -8,6 +8,9 @@ import 'package:youtube_explode_dart/youtube_explode_dart.dart' as yt;
 
 const webProxyUrl = 'http://localhost:8080/';
 
+const unknown = 'Unknown';
+const pageSize = 20;
+
 class PlaybackState {
   PlaybackState({required this.position, required this.isPaused});
 
@@ -58,7 +61,6 @@ class MusicRepository {
 
   Stream<Album> loadAlbumsPage(int offset) async* {
     if (_spotifyApi != null) {
-      const pageSize = 20;
       final page =
           await _spotifyApi!.me.savedAlbums().getPage(pageSize, offset);
       final spotifyAlbums = page.items;
@@ -91,7 +93,7 @@ class MusicRepository {
         // TODO(sergsavchuk): don't load video - use data from the searchItem
         final video = await _youtube.videos.get(videoId);
 
-        yield SearchResult(video.toOmniwaveTrack(albumId: 'no-album'));
+        yield SearchResult(video.toOmniwaveTrack(albumId: unknown));
       }
     }
   }
@@ -182,20 +184,21 @@ extension PlaylistExtension on yt.Playlist {
 
 extension SpotifyAlbumExtension on spotify.AlbumSimple {
   Album toOmniwaveAlbum() {
+    final albumId = id ?? unknown;
     return Album(
-      id: id ?? 'UNKNOWN_ID',
-      name: name ?? 'Unknown album',
+      id: albumId,
+      name: name ?? unknown,
       imageUrl: images?[0].url,
       artists: artists
-              ?.where((element) => element.name != null)
-              .map((e) => e.name)
+              ?.where((artist) => artist.name != null)
+              .map((artist) => artist.name)
               .toList()
               .cast<String>() ??
-          ['Unknown artist'],
+          [unknown],
       tracks: tracks
               ?.map(
                 (track) => track.toOmniwaveTrack(
-                  albumId: id ?? 'UNKNOWN_ID',
+                  albumId: albumId,
                   imageUrl: images?[0].url,
                 ),
               )
@@ -207,18 +210,17 @@ extension SpotifyAlbumExtension on spotify.AlbumSimple {
 }
 
 extension SpotifyTrackExtension on spotify.TrackSimple {
-  Track toOmniwaveTrack({required String albumId, String? imageUrl}) {
+  Track toOmniwaveTrack({required String albumId, required String? imageUrl}) {
     return Track(
-      id: id ?? 'UNKNOWN_ID',
-      name: name ?? 'Unknown track',
-      href: href ?? 'NO_TRACK_HREF_PROVIDED',
+      id: id ?? unknown,
+      name: name ?? unknown,
       imageUrl: imageUrl,
       artists: artists
-              ?.where((element) => element.name != null)
-              .map((e) => e.name)
+              ?.where((artist) => artist.name != null)
+              .map((artist) => artist.name)
               .toList()
               .cast<String>() ??
-          ['Unknown artist'],
+          [unknown],
       duration: duration ?? Duration.zero,
       source: MusicSource.spotify,
       albumId: albumId,
@@ -231,7 +233,6 @@ extension YoutubeTrackExtension on yt.Video {
     return Track(
       id: id.value,
       name: title,
-      href: url,
       imageUrl: thumbnails.highResUrl,
       artists: [author],
       duration: duration ?? Duration.zero,

@@ -226,7 +226,7 @@ class SmallAppScaffoldView extends StatelessWidget {
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      child: SmallPlayerControls(),
+                      child: FloatingPlayerControls(),
                     )
                   : const SizedBox.shrink(),
             )

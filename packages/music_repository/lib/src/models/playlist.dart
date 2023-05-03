@@ -7,6 +7,6 @@ class Playlist extends TrackCollection {
     required super.artists,
     required super.tracks,
     required super.source,
-    super.imageUrl,
+    required super.imageUrl,
   });
 }

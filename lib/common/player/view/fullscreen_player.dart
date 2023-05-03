@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:omniwave/common/common.dart';
 import 'package:omniwave/common/player/view/widgets.dart';
 import 'package:omniwave/styles.dart';
+import 'package:omniwave/utils.dart';
 
 class FullscreenPlayer extends StatelessWidget {
   const FullscreenPlayer({super.key});
@@ -45,7 +46,7 @@ class FullscreenPlayer extends StatelessWidget {
                 builder: (context, state) => AspectRatio(
                   aspectRatio: 1,
                   child: Image.network(
-                    state.currentTrack?.imageUrl ?? 'default-image',
+                    state.currentTrack?.imageUrl ?? Urls.defaultCover,
                     fit: BoxFit.fitHeight,
                   ),
                 ),
@@ -53,13 +54,24 @@ class FullscreenPlayer extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: Insets.medium),
-              child: BlocBuilder<PlayerBloc, PlayerState>(
+              child: BlocConsumer<PlayerBloc, PlayerState>(
+                // close fullscreen player if there is no track playing rn
+                listener: (context, state) => state.currentTrack == null
+                    ? Navigator.of(context).pop()
+                    : null,
                 builder: (context, state) => Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    TrackWithArtist(
-                      trackName: state.currentTrack?.name ?? '',
-                      artist: state.currentTrack?.artists.join(', ') ?? '',
+                    Expanded(
+                      child: TrackWithArtist(
+                        trackName: state.currentTrack?.name ?? '',
+                        artist:
+                            Helpers.joinArtists(state.currentTrack?.artists),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => {},
+                      icon: const Icon(Icons.favorite_outline),
                     ),
                   ],
                 ),

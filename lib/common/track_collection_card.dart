@@ -72,7 +72,7 @@ class _CollectionInfo extends StatelessWidget {
       children: [
         Flexible(
           child: _TrackCollectionCover(
-            imageUrl: collection.imageUrl ?? 'some-default-image-url',
+            imageUrl: collection.imageUrl ?? Urls.defaultCover,
             hovered: hovered,
           ),
         ),
@@ -92,7 +92,7 @@ class _CollectionInfo extends StatelessWidget {
           height: Insets.small,
         ),
         Text(
-          collection.artists.join(', '),
+          Helpers.joinArtists(collection.artists),
           overflow: TextOverflow.ellipsis,
         ),
       ],
@@ -111,7 +111,7 @@ class _SmallCollectionInfo extends StatelessWidget {
     return Row(
       children: [
         _TrackCollectionCover(
-          imageUrl: collection.imageUrl ?? 'some-default-image-url',
+          imageUrl: collection.imageUrl ?? Urls.defaultCover,
           hovered: hovered,
         ),
         const SizedBox(
@@ -132,7 +132,7 @@ class _SmallCollectionInfo extends StatelessWidget {
                     ),
               ),
               Text(
-                collection.artists.join(', '),
+                Helpers.joinArtists(collection.artists),
                 softWrap: false,
                 overflow: TextOverflow.fade,
               ),

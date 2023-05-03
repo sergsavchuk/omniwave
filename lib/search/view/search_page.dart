@@ -118,7 +118,7 @@ class _SearchItemView<T> extends StatelessWidget {
           child: AspectRatio(
             aspectRatio: 1,
             child: Image.network(
-              imageUrl ?? 'stub-image',
+              imageUrl ?? Urls.defaultCover,
               fit: BoxFit.fitHeight,
             ),
           ),
@@ -130,14 +130,14 @@ class _SearchItemView<T> extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                name ?? 'Unknown item',
+                name ?? Values.unknownItem,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: Colors.white,
                     ),
               ),
               Text(
-                type ?? 'Unknown type',
+                type ?? Values.unknownItem,
                 style: Theme.of(context)
                     .textTheme
                     .bodySmall

@@ -41,8 +41,8 @@ class PlayerControls extends StatelessWidget {
   }
 }
 
-class SmallPlayerControls extends StatelessWidget {
-  const SmallPlayerControls({super.key});
+class FloatingPlayerControls extends StatelessWidget {
+  const FloatingPlayerControls({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -55,9 +55,11 @@ class SmallPlayerControls extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: const [
-                Padding(
-                  padding: EdgeInsets.all(10),
-                  child: CoverWithTrackName(iconSize: 50),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: CoverWithTrackName(iconSize: 50),
+                  ),
                 ),
                 TogglePlayButton(),
               ],

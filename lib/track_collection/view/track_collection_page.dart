@@ -68,7 +68,7 @@ class SmallTrackCollectionView extends StatelessWidget {
                     child: AspectRatio(
                       aspectRatio: 1,
                       child: Image.network(
-                        trackCollection.imageUrl ?? 'some-default-image-url',
+                        trackCollection.imageUrl ?? Urls.defaultCover,
                         fit: BoxFit.fitHeight,
                       ),
                     ),
@@ -84,7 +84,7 @@ class SmallTrackCollectionView extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(left: Insets.small),
                   child: Text(
-                    trackCollection.artists.join(', '),
+                    Helpers.joinArtists(trackCollection.artists),
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ),
@@ -145,7 +145,7 @@ class _TrackItemView extends StatelessWidget {
                     ),
               ),
               Text(
-                track.artists.join(', '),
+                Helpers.joinArtists(track.artists),
                 style: Theme.of(context)
                     .textTheme
                     .bodySmall

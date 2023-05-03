@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:omniwave/common/player/player_controls.dart';
 import 'package:omniwave/styles.dart';
+import 'package:omniwave/utils.dart';
 
 class PlaybackProgressIndicator extends StatelessWidget {
   const PlaybackProgressIndicator({super.key});
@@ -47,14 +48,16 @@ class CoverWithTrackName extends StatelessWidget {
         children: [
           if (state.currentTrack != null)
             Image.network(
-              state.currentTrack?.imageUrl ?? 'default-image',
+              state.currentTrack?.imageUrl ?? Urls.defaultCover,
               width: iconSize,
               height: iconSize,
             ),
           const SizedBox(width: Insets.extraSmall),
-          TrackWithArtist(
-            trackName: state.currentTrack?.name ?? '',
-            artist: state.currentTrack?.artists.join(', ') ?? '',
+          Flexible(
+            child: TrackWithArtist(
+              trackName: state.currentTrack?.name ?? '',
+              artist: Helpers.joinArtists(state.currentTrack?.artists),
+            ),
           ),
         ],
       ),
@@ -81,10 +84,14 @@ class TrackWithArtist extends StatelessWidget {
         Text(
           trackName,
           style: const TextStyle(color: Colors.white),
+          overflow: TextOverflow.fade,
+          softWrap: false,
         ),
         Text(
           artist,
           style: const TextStyle(color: Colors.grey),
+          overflow: TextOverflow.fade,
+          softWrap: false,
         ),
       ],
     );

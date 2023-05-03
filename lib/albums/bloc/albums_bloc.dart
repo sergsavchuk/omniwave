@@ -28,6 +28,7 @@ class AlbumsBloc extends Bloc<AlbumsEvent, AlbumsState> {
     final albumStream = musicRepository.loadAlbumsPage(event.offset);
     final albumList = List.of(state.albums);
 
+    // TODO(sergsavchuk): do not emit that much states ?
     await for (final album in albumStream) {
       albumList.add(album);
       emit(AlbumsState(albums: List.of(albumList), loadingNextPage: true));
