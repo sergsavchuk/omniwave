@@ -10,6 +10,7 @@ import 'package:omniwave/albums/albums.dart';
 import 'package:omniwave/bloc/app_settings_bloc.dart';
 import 'package:omniwave/common/player/player_controls.dart';
 import 'package:omniwave/firebase_options.dart';
+import 'package:omniwave/track_collection/bloc/track_collection_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -89,6 +90,11 @@ class OmniwaveApp extends StatelessWidget {
 class OmniwaveAppBlocObserver extends BlocObserver {
   OmniwaveAppBlocObserver({this.logAll = false});
 
+  static const filterTypes = [
+    PlayerPlaybackPositionChanged,
+    TrackCollectionScrollPositionChanged
+  ];
+
   final bool logAll;
 
   @override
@@ -97,7 +103,8 @@ class OmniwaveAppBlocObserver extends BlocObserver {
     Transition<dynamic, dynamic> transition,
   ) {
     super.onTransition(bloc, transition);
-    if (transition.event is! PlayerPlaybackPositionChanged || logAll) {
+    if (!filterTypes.contains((transition.event as Object?).runtimeType) ||
+        logAll) {
       log('onTransition(${bloc.runtimeType}, $transition)');
     }
   }
@@ -112,7 +119,7 @@ class OmniwaveAppBlocObserver extends BlocObserver {
   void onEvent(Bloc<dynamic, dynamic> bloc, Object? event) {
     super.onEvent(bloc, event);
 
-    if (event is! PlayerPlaybackPositionChanged || logAll) {
+    if (!filterTypes.contains(event.runtimeType) || logAll) {
       log('onEvent(${bloc.runtimeType}, $event');
     }
   }
