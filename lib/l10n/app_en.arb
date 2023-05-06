@@ -1,0 +1,9 @@
+{
+  "albums": "Albums",
+  "playlists": "Playlists",
+  "tracks": "Tracks",
+  "search": "Search",
+  "profile": "Profile",
+  "spotifyConnected": "Spotify connected",
+  "connectSpotify": "Connect Spotify"
+}

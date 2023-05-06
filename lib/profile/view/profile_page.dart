@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:omniwave/bloc/app_settings_bloc.dart';
 import 'package:omniwave/common/common.dart';
 import 'package:omniwave/profile/profile.dart';
@@ -14,7 +15,7 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      category: MusicItemCategory.profile,
+      category: NavBarItem.profile,
       body: BlocProvider(
         create: (context) => ProfileBloc(),
         child: const ProfileView(),
@@ -35,9 +36,9 @@ class ProfileView extends StatelessWidget {
         children: [
           BlocBuilder<AppSettingsBloc, AppSettingsState>(
             builder: (context, state) => state.spotifyConnected
-                ? const Text('Spotify connected')
+                ? Text(AppLocalizations.of(context)!.spotifyConnected)
                 : TextButton(
-                    child: const Text('Connect Spotify'),
+                    child: Text(AppLocalizations.of(context)!.connectSpotify),
                     onPressed: () => context.read<AppSettingsBloc>().add(
                           AppSettingsSpotifyConnectRequested(),
                         ),

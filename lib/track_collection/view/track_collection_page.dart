@@ -20,7 +20,7 @@ class TrackCollectionPage extends StatelessWidget {
 
   static Route<void> route(
     TrackCollection trackCollection,
-    MusicItemCategory category,
+    NavBarItem category,
   ) =>
       MaterialPageRoute(
         builder: (_) => TrackCollectionPage(
@@ -30,7 +30,7 @@ class TrackCollectionPage extends StatelessWidget {
       );
 
   final TrackCollection trackCollection;
-  final MusicItemCategory category;
+  final NavBarItem category;
 
   @override
   Widget build(BuildContext context) {

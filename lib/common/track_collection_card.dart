@@ -13,7 +13,7 @@ class TrackCollectionCard extends StatefulWidget {
   });
 
   final TrackCollection trackCollection;
-  final MusicItemCategory category;
+  final NavBarItem category;
 
   @override
   State<TrackCollectionCard> createState() => _TrackCollectionCardState();

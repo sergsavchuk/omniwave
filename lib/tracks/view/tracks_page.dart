@@ -13,7 +13,7 @@ class TracksPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      category: MusicItemCategory.tracks,
+      category: NavBarItem.tracks,
       body: BlocProvider(
         create: (___) => TracksBloc(),
         child: const TracksView(),

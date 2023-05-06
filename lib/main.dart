@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:music_repository/music_repository.dart';
 import 'package:omniwave/albums/albums.dart';
 import 'package:omniwave/bloc/app_settings_bloc.dart';
@@ -80,6 +81,8 @@ class OmniwaveApp extends StatelessWidget {
               ),
             ),
           ),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: const AlbumsPage(),
         ),
       ),

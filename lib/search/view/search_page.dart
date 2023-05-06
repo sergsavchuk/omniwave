@@ -15,7 +15,7 @@ class SearchPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      category: MusicItemCategory.search,
+      category: NavBarItem.search,
       body: BlocProvider(
         create: (context) =>
             SearchBloc(musicRepository: context.read<MusicRepository>()),

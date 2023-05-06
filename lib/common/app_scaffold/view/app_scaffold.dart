@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:multi_split_view/multi_split_view.dart';
 import 'package:omniwave/albums/albums.dart';
 import 'package:omniwave/bloc/app_settings_bloc.dart';
@@ -12,47 +13,57 @@ import 'package:omniwave/styles.dart';
 import 'package:omniwave/tracks/tracks.dart';
 import 'package:omniwave/utils.dart';
 
-enum MusicItemCategory {
-  albums('Albums', Icons.album_outlined, Icons.album_rounded),
-  playlists(
-    'Playlists',
-    Icons.playlist_play_outlined,
-    Icons.playlist_play_rounded,
-  ),
-  tracks('Tracks', Icons.audiotrack_outlined, Icons.audiotrack_rounded),
-  search('Search', Icons.search_outlined, Icons.search_rounded),
-  profile('Profile', Icons.person_outline, Icons.person);
+enum NavBarItem {
+  albums(Icons.album_outlined, Icons.album_rounded),
+  playlists(Icons.playlist_play_outlined, Icons.playlist_play_rounded),
+  tracks(Icons.audiotrack_outlined, Icons.audiotrack_rounded),
+  search(Icons.search_outlined, Icons.search_rounded),
+  profile(Icons.person_outline, Icons.person);
 
-  const MusicItemCategory(this.name, this.icon, this.activeIcon);
+  const NavBarItem(this.icon, this.activeIcon);
 
-  final String name;
   final IconData icon;
   final IconData activeIcon;
 
-  BottomNavigationBarItem asNavBarItem() {
+  BottomNavigationBarItem asNavBarItem(BuildContext context) {
     return BottomNavigationBarItem(
       icon: Icon(icon),
       activeIcon: Icon(activeIcon),
-      label: name,
+      label: name(context),
     );
   }
 
-  static void navigateTo(MusicItemCategory category, NavigatorState navigator) {
+  String name(BuildContext context) {
+    switch (this) {
+      case NavBarItem.albums:
+        return AppLocalizations.of(context)!.albums;
+      case NavBarItem.playlists:
+        return AppLocalizations.of(context)!.playlists;
+      case NavBarItem.tracks:
+        return AppLocalizations.of(context)!.tracks;
+      case NavBarItem.search:
+        return AppLocalizations.of(context)!.search;
+      case NavBarItem.profile:
+        return AppLocalizations.of(context)!.profile;
+    }
+  }
+
+  static void navigateTo(NavBarItem category, NavigatorState navigator) {
     Route<void> route;
     switch (category) {
-      case MusicItemCategory.albums:
+      case NavBarItem.albums:
         route = AlbumsPage.route();
         break;
-      case MusicItemCategory.playlists:
+      case NavBarItem.playlists:
         route = PlaylistsPage.route();
         break;
-      case MusicItemCategory.tracks:
+      case NavBarItem.tracks:
         route = TracksPage.route();
         break;
-      case MusicItemCategory.search:
+      case NavBarItem.search:
         route = SearchPage.route();
         break;
-      case MusicItemCategory.profile:
+      case NavBarItem.profile:
         route = ProfilePage.route();
         break;
     }
@@ -65,7 +76,7 @@ class AppScaffold extends StatelessWidget {
   const AppScaffold({super.key, required this.body, required this.category});
 
   final Widget body;
-  final MusicItemCategory category;
+  final NavBarItem category;
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +94,7 @@ class AppScaffoldView extends StatelessWidget {
   });
 
   final Widget body;
-  final MusicItemCategory category;
+  final NavBarItem category;
 
   @override
   Widget build(BuildContext context) {
@@ -137,15 +148,15 @@ class AppScaffoldView extends StatelessWidget {
                           thickness: 0.5,
                         ),
                         CategoryButton(
-                          category: MusicItemCategory.albums,
+                          category: NavBarItem.albums,
                           selectedCategory: category,
                         ),
                         CategoryButton(
-                          category: MusicItemCategory.playlists,
+                          category: NavBarItem.playlists,
                           selectedCategory: category,
                         ),
                         CategoryButton(
-                          category: MusicItemCategory.tracks,
+                          category: NavBarItem.tracks,
                           selectedCategory: category,
                         ),
                       ],
@@ -210,7 +221,7 @@ class SmallAppScaffoldView extends StatelessWidget {
   });
 
   final Widget body;
-  final MusicItemCategory category;
+  final NavBarItem category;
 
   @override
   Widget build(BuildContext context) {
@@ -234,13 +245,13 @@ class SmallAppScaffoldView extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: MusicItemCategory.values.indexOf(category),
-        onTap: (index) => MusicItemCategory.navigateTo(
-          MusicItemCategory.values.elementAt(index),
+        currentIndex: NavBarItem.values.indexOf(category),
+        onTap: (index) => NavBarItem.navigateTo(
+          NavBarItem.values.elementAt(index),
           Navigator.of(context),
         ),
-        items: MusicItemCategory.values
-            .map((category) => category.asNavBarItem())
+        items: NavBarItem.values
+            .map((category) => category.asNavBarItem(context))
             .toList(),
       ),
     );
@@ -251,19 +262,18 @@ class CategoryButton extends StatelessWidget {
   const CategoryButton({
     super.key,
     required this.category,
-    required MusicItemCategory selectedCategory,
+    required NavBarItem selectedCategory,
   }) : isSelected = selectedCategory == category;
 
-  final MusicItemCategory category;
+  final NavBarItem category;
   final bool isSelected;
 
   @override
   Widget build(BuildContext context) {
     return TextButton.icon(
-      onPressed: () =>
-          MusicItemCategory.navigateTo(category, Navigator.of(context)),
+      onPressed: () => NavBarItem.navigateTo(category, Navigator.of(context)),
       icon: Icon(isSelected ? category.activeIcon : category.icon),
-      label: Text(category.name),
+      label: Text(category.name(context)),
       style: isSelected
           ? Theme.of(context).textButtonTheme.style?.copyWith(
                 foregroundColor: const MaterialStatePropertyAll(Colors.white),

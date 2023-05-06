@@ -15,7 +15,7 @@ class AlbumsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      category: MusicItemCategory.albums,
+      category: NavBarItem.albums,
       body: BlocProvider(
         create: (context) =>
             AlbumsBloc(musicRepository: context.read<MusicRepository>())
@@ -54,7 +54,7 @@ class AlbumsView extends StatelessWidget {
               .map(
                 (album) => TrackCollectionCard(
                   trackCollection: album,
-                  category: MusicItemCategory.albums,
+                  category: NavBarItem.albums,
                 ),
               )
               .toList(),
