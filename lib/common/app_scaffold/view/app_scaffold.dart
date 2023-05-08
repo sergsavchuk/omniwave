@@ -143,8 +143,8 @@ class AppScaffoldView extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const Divider(
-                          color: Colors.grey,
+                        Divider(
+                          color: Theme.of(context).colorScheme.onSurface,
                           thickness: 0.5,
                         ),
                         CategoryButton(
@@ -172,7 +172,10 @@ class AppScaffoldView extends StatelessWidget {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Theme.of(context).primaryColor, Colors.black],
+                        colors: [
+                          Theme.of(context).primaryColor,
+                          Theme.of(context).colorScheme.surface
+                        ],
                         stops: const [0.0, 0.30],
                       ),
                     ),
@@ -182,10 +185,10 @@ class AppScaffoldView extends StatelessWidget {
               ),
             ),
           ),
-          const Divider(
+          Divider(
             height: 0.5,
             thickness: 0.5,
-            color: Colors.grey,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           const PlayerControls()
         ],
@@ -274,11 +277,7 @@ class CategoryButton extends StatelessWidget {
       onPressed: () => NavBarItem.navigateTo(category, Navigator.of(context)),
       icon: Icon(isSelected ? category.activeIcon : category.icon),
       label: Text(category.name(context)),
-      style: isSelected
-          ? Theme.of(context).textButtonTheme.style?.copyWith(
-                foregroundColor: const MaterialStatePropertyAll(Colors.white),
-              )
-          : null,
+      style: isSelected ? Theme.of(context).textButtonTheme.style : null,
     );
   }
 }

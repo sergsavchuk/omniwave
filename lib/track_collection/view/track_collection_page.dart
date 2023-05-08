@@ -117,14 +117,14 @@ class _SmallTrackCollectionViewState extends State<SmallTrackCollectionView> {
                   padding: const EdgeInsets.only(left: Insets.small),
                   child: Text(
                     widget.trackCollection.name,
-                    style: Theme.of(context).textTheme.headlineSmall,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(left: Insets.small),
                   child: Text(
                     Helpers.joinArtists(widget.trackCollection.artists),
-                    style: Theme.of(context).textTheme.bodyLarge,
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
                 Padding(
@@ -265,8 +265,8 @@ class _PlayTrackCollectionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: () => trackCollection.tracks.isNotEmpty
+    return GestureDetector(
+      onTap: () => trackCollection.tracks.isNotEmpty
           ? context.read<PlayerBloc>().add(
                 PlayerTrackPlayRequested(
                   trackCollection.tracks.first,
@@ -274,11 +274,16 @@ class _PlayTrackCollectionButton extends StatelessWidget {
                 ),
               )
           : null,
-      iconSize: size,
-      padding: EdgeInsets.zero,
-      icon: const Icon(Icons.play_circle),
-      style: IconButton.styleFrom(
-        backgroundColor: Theme.of(context).colorScheme.primary,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          Icons.play_circle,
+          size: size,
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
     );
   }
@@ -308,16 +313,13 @@ class _TrackItemView extends StatelessWidget {
                 track.name,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: state.currentTrack == track
-                          ? Theme.of(context).colorScheme.secondary
-                          : Colors.white,
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.onSurface,
                     ),
               ),
               Text(
                 Helpers.joinArtists(track.artists),
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: Colors.grey),
+                style: Theme.of(context).textTheme.bodySmall,
               )
             ],
           ),

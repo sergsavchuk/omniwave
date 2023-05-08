@@ -83,10 +83,7 @@ class _CollectionInfo extends StatelessWidget {
           collection.name,
           softWrap: false,
           overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-              ),
+          style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(
           height: Insets.small,
@@ -94,6 +91,7 @@ class _CollectionInfo extends StatelessWidget {
         Text(
           Helpers.joinArtists(collection.artists),
           overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.titleMedium,
         ),
       ],
     );
@@ -126,15 +124,13 @@ class _SmallCollectionInfo extends StatelessWidget {
                 collection.name,
                 softWrap: false,
                 overflow: TextOverflow.fade,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
+                style: Theme.of(context).textTheme.titleMedium,
               ),
               Text(
                 Helpers.joinArtists(collection.artists),
                 softWrap: false,
                 overflow: TextOverflow.fade,
+                style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
           ),

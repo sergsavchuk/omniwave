@@ -132,16 +132,11 @@ class _SearchItemView<T> extends StatelessWidget {
               Text(
                 name ?? Values.unknownItem,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.white,
-                    ),
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
               Text(
                 type ?? Values.unknownItem,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: Colors.grey),
+                style: Theme.of(context).textTheme.bodySmall,
               )
             ],
           ),

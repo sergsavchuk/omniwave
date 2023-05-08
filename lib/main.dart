@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -61,26 +62,7 @@ class OmniwaveApp extends StatelessWidget {
         child: MaterialApp(
           title: 'Omniwave Music Player',
           themeMode: ThemeMode.dark,
-          darkTheme: ThemeData(
-            useMaterial3: true,
-            colorScheme: ColorScheme.fromSwatch(
-              brightness: Brightness.dark,
-            ),
-            textButtonTheme: TextButtonThemeData(
-              style: ButtonStyle(
-                foregroundColor:
-                    MaterialStateProperty.resolveWith<Color?>((states) {
-                  if (states.contains(MaterialState.hovered)) {
-                    return Colors.white;
-                  }
-                  return Colors.grey;
-                }),
-                textStyle: MaterialStateProperty.all(
-                  Theme.of(context).textTheme.labelLarge,
-                ),
-              ),
-            ),
-          ),
+          darkTheme: FlexThemeData.dark(scheme: FlexScheme.jungle),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: const AlbumsPage(),

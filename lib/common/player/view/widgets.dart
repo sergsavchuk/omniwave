@@ -83,13 +83,12 @@ class TrackWithArtist extends StatelessWidget {
       children: [
         Text(
           trackName,
-          style: const TextStyle(color: Colors.white),
           overflow: TextOverflow.fade,
           softWrap: false,
         ),
         Text(
           artist,
-          style: const TextStyle(color: Colors.grey),
+          style: Theme.of(context).textTheme.bodySmall,
           overflow: TextOverflow.fade,
           softWrap: false,
         ),

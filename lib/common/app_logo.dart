@@ -6,13 +6,7 @@ class AppLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FittedBox(
-      child: Text(
-        'OmniWave',
-        style: Theme.of(context)
-            .textTheme
-            .headlineLarge
-            ?.copyWith(color: Colors.white),
-      ),
+      child: Text('OmniWave', style: Theme.of(context).textTheme.headlineLarge),
     );
   }
 }

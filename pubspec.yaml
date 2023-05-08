@@ -16,6 +16,7 @@ dependencies:
   envied: ^0.3.0
   equatable: ^2.0.5
   firebase_core: ^2.9.0
+  flex_color_scheme: ^7.0.5
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.1
