@@ -11,7 +11,7 @@ part 'app_settings_state.dart';
 
 class AppSettingsBloc extends Bloc<AppSettingsEvent, AppSettingsState> {
   AppSettingsBloc({
-    required MusicRepository musicRepository,
+    required MusicRepositoryImpl musicRepository,
     required AuthenticationRepository authenticationRepository,
   })  : _musicRepository = musicRepository,
         _authRepository = authenticationRepository,
@@ -28,7 +28,7 @@ class AppSettingsBloc extends Bloc<AppSettingsEvent, AppSettingsState> {
         .listen((user) => add(_AppSettingsUserChanged(user)));
   }
 
-  final MusicRepository _musicRepository;
+  final MusicRepositoryImpl _musicRepository;
   final AuthenticationRepository _authRepository;
 
   late final StreamSubscription<User> _userStreamSubscription;

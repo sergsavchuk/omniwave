@@ -14,7 +14,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     on<PlaylistsPageLoadRequested>(_loadRequested);
   }
 
-  final MusicRepository musicRepository;
+  final MusicRepositoryImpl musicRepository;
 
   FutureOr<void> _loadRequested(
     PlaylistsPageLoadRequested event,

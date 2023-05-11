@@ -19,7 +19,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     );
   }
 
-  final MusicRepository musicRepository;
+  final MusicRepositoryImpl musicRepository;
 
   FutureOr<void> _queryChanged(
     SearchQueryChanged event,

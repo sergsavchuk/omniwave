@@ -1,95 +1,66 @@
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
+import 'dart:async';
+import 'package:async/async.dart';
 import 'package:music_repository/src/models/models.dart';
-import 'package:spotify/spotify.dart' as spotify;
+import 'package:music_repository/src/spotify_music_repository.dart';
+import 'package:music_repository/src/youtube_music_repository.dart';
 import 'package:spotify_sdk/spotify_sdk.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart' as yt;
-
-const webProxyUrl = 'http://localhost:8080/';
 
 const unknown = 'Unknown';
 const pageSize = 20;
 
-class MusicRepository {
-  MusicRepository({required bool useYoutubeProxy})
-      : _useYoutubeProxy = useYoutubeProxy {
-    _youtube = yt.YoutubeExplode(_useYoutubeProxy ? _ProxyHttpClient() : null);
-  }
+abstract class MusicRepository {
+  Stream<List<Album>> albumsStream();
 
-  spotify.SpotifyApi? _spotifyApi;
-  bool _spotifySdkConnected = false;
-  final String _spotifyScope = [
-    'user-library-read',
-    'streaming',
-    'user-read-email',
-    'user-read-private',
-  ].join(',');
+  Stream<List<Track>> tracksStream();
 
-  final bool _useYoutubeProxy;
+  Stream<List<Playlist>> playlistsStream();
+
+  Stream<SearchResult<Object>> search(String searchQuery);
+
+  Future<void> dispose();
+}
+
+class MusicRepositoryImpl implements MusicRepository {
+  MusicRepositoryImpl({required bool useYoutubeProxy})
+      : _youtubeMusicRepository =
+            YoutubeMusicRepository(useYoutubeProxy: useYoutubeProxy);
+
+  final SpotifyMusicRepository _spotifyMusicRepository =
+      SpotifyMusicRepository();
+  late final YoutubeMusicRepository _youtubeMusicRepository;
+
+  late final List<MusicRepository> _repositories = [
+    _spotifyMusicRepository,
+    _youtubeMusicRepository
+  ];
+
   late final yt.YoutubeExplode _youtube;
 
-  bool get spotifyConnected => _spotifyApi != null && _spotifySdkConnected;
+  bool get spotifyConnected => _spotifyMusicRepository.spotifyConnected;
 
-  Future<void> connectSpotify(String clientId, String redirectUrl) async {
-    _spotifySdkConnected = await SpotifySdk.connectToSpotifyRemote(
-      // accessToken: accessToken,
-      clientId: clientId,
-      redirectUrl: redirectUrl,
-      scope: _spotifyScope,
-      playerName: 'Omniwave Player',
-    );
+  final Map<MusicRepository, List<Album>> _albumsMap = {};
+  StreamController<List<Album>>? _albumsStreamController;
 
-    // TODO(sergsavchuk): use SpotifyApi instead of
-    // SpotifySdk to get the access token, cause
-    // SpotifySdk doesn't support desktop platforms
-    final accessToken = await SpotifySdk.getAccessToken(
-      clientId: clientId,
-      redirectUrl: redirectUrl,
-      scope: _spotifyScope,
-    );
+  final Map<MusicRepository, List<Playlist>> _playlistsMap = {};
+  StreamController<List<Playlist>>? _playlistsStreamController;
 
-    _spotifyApi = spotify.SpotifyApi.withAccessToken(accessToken);
-  }
+  final Map<MusicRepository, List<Track>> _tracksMap = {};
+  StreamController<List<Track>>? _tracksStreamController;
+
+  final _subscriptions = <StreamSubscription<dynamic>>[];
+
+  Future<void> connectSpotify(String clientId, String redirectUrl) =>
+      _spotifyMusicRepository.connectSpotify(clientId, redirectUrl);
 
   Stream<Album> loadAlbumsPage(int offset) async* {
-    if (_spotifyApi != null) {
-      final page =
-          await _spotifyApi!.me.savedAlbums().getPage(pageSize, offset);
-      final spotifyAlbums = page.items;
-      if (spotifyAlbums != null) {
-        for (final spotifyAlbum in spotifyAlbums) {
-          yield spotifyAlbum.toOmniwaveAlbum();
-        }
-      }
-    }
+    yield* _spotifyMusicRepository.loadAlbumsPage(offset);
   }
 
-  // TODO(sergsavchuk): add Spotify search
-  Stream<SearchResult<Object>> search(String searchQuery) async* {
-    final searchList = await _youtube.search.searchContent(searchQuery);
-
-    for (final searchItem in searchList) {
-      if (searchItem is yt.SearchPlaylist) {
-        final playlistId = searchItem.playlistId.value;
-        final tracks = await _youtube.playlists
-            .getVideos(playlistId)
-            .map((event) => event.toOmniwaveTrack(albumId: playlistId))
-            .toList();
-
-        // TODO(sergsavchuk): don't load playlist - use data from the searchItem
-        yield SearchResult(
-          (await _youtube.playlists.get(playlistId)).toOmniwavePlaylist(tracks),
-        );
-      } else if (searchItem is yt.SearchVideo) {
-        final videoId = searchItem.id.value;
-        // TODO(sergsavchuk): don't load video - use data from the searchItem
-        final video = await _youtube.videos.get(videoId);
-
-        yield SearchResult(video.toOmniwaveTrack(albumId: unknown));
-      }
-    }
-  }
+  @override
+  Stream<SearchResult<Object>> search(String searchQuery) => StreamGroup.merge(
+        _repositories.map((element) => element.search(searchQuery)),
+      );
 
   Future<Uri> playYoutubeTrack(Track track) async {
     final manifest = await _youtube.videos.streams.getManifest(track.id);
@@ -121,116 +92,84 @@ class MusicRepository {
   Future<void> spotifyResumePlay() async {
     await SpotifySdk.resume();
   }
-}
 
-/// A workaround for web platform. [yt.YoutubeExplode] doesn't work in web
-/// because of CORS, so the only solution now is to use any proxy server.
-///
-/// But even with the proxy there is still a problem with youtube responding
-/// 403 Forbidden to any POST request. Maybe this is because http.BrowserClient
-/// doesn't support BaseRequest.persistentConnection unlike IOClient.
-// TODO(sergsavchuk): investigate the situation further
-class _ProxyHttpClient extends yt.YoutubeHttpClient {
   @override
-  Future<http.Response> get(
-    Uri url, {
-    Map<String, String>? headers = const {},
-    bool validate = false,
-  }) {
-    return super.get(
-      Uri.parse('$webProxyUrl$url'),
-      headers: headers,
-      validate: validate,
-    );
+  Stream<List<Album>> albumsStream() {
+    if (_albumsStreamController == null) {
+      _albumsStreamController = StreamController();
+
+      for (final repository in _repositories) {
+        _subscribeToSubrepoStream(
+          _albumsStreamController!,
+          _albumsMap,
+          repository,
+          repository.albumsStream(),
+        );
+      }
+    }
+
+    return _albumsStreamController!.stream;
   }
 
   @override
-  Future<http.Response> post(
-    Uri url, {
-    Map<String, String>? headers,
-    Object? body,
-    Encoding? encoding,
-    bool validate = false,
-  }) {
-    return super.post(
-      Uri.parse('$webProxyUrl$url'),
-      headers: headers,
-      body: body,
-      encoding: encoding,
-      validate: validate,
-    );
-  }
-}
+  Stream<List<Playlist>> playlistsStream() {
+    if (_playlistsStreamController == null) {
+      _playlistsStreamController = StreamController();
 
-extension PlaylistExtension on yt.Playlist {
-  Playlist toOmniwavePlaylist(List<Track> tracks) {
-    return Playlist(
-      id: id.value,
-      name: title,
-      imageUrl: tracks.isNotEmpty ? tracks[0].imageUrl : null,
-      artists: [author],
-      tracks: tracks,
-      source: MusicSource.youtube,
-    );
-  }
-}
+      for (final repository in _repositories) {
+        _subscribeToSubrepoStream(
+          _playlistsStreamController!,
+          _playlistsMap,
+          repository,
+          repository.playlistsStream(),
+        );
+      }
+    }
 
-extension SpotifyAlbumExtension on spotify.AlbumSimple {
-  Album toOmniwaveAlbum() {
-    final albumId = id ?? unknown;
-    return Album(
-      id: albumId,
-      name: name ?? unknown,
-      imageUrl: images?[0].url,
-      artists: artists
-              ?.where((artist) => artist.name != null)
-              .map((artist) => artist.name)
-              .toList()
-              .cast<String>() ??
-          [unknown],
-      tracks: tracks
-              ?.map(
-                (track) => track.toOmniwaveTrack(
-                  albumId: albumId,
-                  imageUrl: images?[0].url,
-                ),
-              )
-              .toList() ??
-          [],
-      source: MusicSource.spotify,
-    );
+    return _playlistsStreamController!.stream;
   }
-}
 
-extension SpotifyTrackExtension on spotify.TrackSimple {
-  Track toOmniwaveTrack({required String albumId, required String? imageUrl}) {
-    return Track(
-      id: id ?? unknown,
-      name: name ?? unknown,
-      imageUrl: imageUrl,
-      artists: artists
-              ?.where((artist) => artist.name != null)
-              .map((artist) => artist.name)
-              .toList()
-              .cast<String>() ??
-          [unknown],
-      duration: duration ?? Duration.zero,
-      source: MusicSource.spotify,
-      albumId: albumId,
-    );
+  @override
+  Stream<List<Track>> tracksStream() {
+    if (_tracksStreamController == null) {
+      _tracksStreamController = StreamController();
+
+      for (final repository in _repositories) {
+        _subscribeToSubrepoStream(
+          _tracksStreamController!,
+          _tracksMap,
+          repository,
+          repository.tracksStream(),
+        );
+      }
+    }
+
+    return _tracksStreamController!.stream;
   }
-}
 
-extension YoutubeTrackExtension on yt.Video {
-  Track toOmniwaveTrack({required String albumId}) {
-    return Track(
-      id: id.value,
-      name: title,
-      imageUrl: thumbnails.highResUrl,
-      artists: [author],
-      duration: duration ?? Duration.zero,
-      source: MusicSource.youtube,
-      albumId: albumId,
+  @override
+  Future<void> dispose() async {
+    for (final subscription in _subscriptions) {
+      await subscription.cancel();
+    }
+  }
+
+  void _subscribeToSubrepoStream<T>(
+    StreamController<List<T>> streamController,
+    Map<MusicRepository, List<T>> accumulatingMap,
+    MusicRepository repository,
+    Stream<List<T>> stream,
+  ) {
+    _subscriptions.add(
+      stream.listen((items) {
+        accumulatingMap[repository] = items;
+        streamController.add(
+          accumulatingMap.values.fold(
+            [],
+            (previousValue, element) => previousValue + element,
+          ),
+        );
+      }),
     );
   }
 }

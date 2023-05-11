@@ -42,7 +42,7 @@ class OmniwaveApp extends StatelessWidget {
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider(
-          create: (_) => MusicRepository(useYoutubeProxy: kIsWeb),
+          create: (_) => MusicRepositoryImpl(useYoutubeProxy: kIsWeb),
         ),
         RepositoryProvider.value(value: _authenticationRepository),
       ],
@@ -50,13 +50,14 @@ class OmniwaveApp extends StatelessWidget {
         providers: [
           BlocProvider(
             create: (context) => AppSettingsBloc(
-              musicRepository: context.read<MusicRepository>(),
+              musicRepository: context.read<MusicRepositoryImpl>(),
               authenticationRepository: _authenticationRepository,
             ),
           ),
           BlocProvider<PlayerBloc>(
-            create: (context) =>
-                PlayerBloc(musicRepository: context.read<MusicRepository>()),
+            create: (context) => PlayerBloc(
+              musicRepository: context.read<MusicRepositoryImpl>(),
+            ),
           ),
         ],
         child: MaterialApp(

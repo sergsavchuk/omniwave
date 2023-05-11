@@ -18,7 +18,7 @@ class SearchPage extends StatelessWidget {
       category: NavBarItem.search,
       body: BlocProvider(
         create: (context) =>
-            SearchBloc(musicRepository: context.read<MusicRepository>()),
+            SearchBloc(musicRepository: context.read<MusicRepositoryImpl>()),
         child: const SearchView(),
       ),
     );
