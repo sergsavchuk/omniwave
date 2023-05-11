@@ -11,13 +11,6 @@ const webProxyUrl = 'http://localhost:8080/';
 const unknown = 'Unknown';
 const pageSize = 20;
 
-class PlaybackState {
-  PlaybackState({required this.position, required this.isPaused});
-
-  final bool isPaused;
-  final Duration position;
-}
-
 class MusicRepository {
   MusicRepository({required bool useYoutubeProxy})
       : _useYoutubeProxy = useYoutubeProxy {
