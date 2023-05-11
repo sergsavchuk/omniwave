@@ -1,4 +1,4 @@
-import 'package:music_repository/music_repository.dart';
+import 'package:common_models/common_models.dart';
 
 class TrackCollection extends MusicEntity {
   const TrackCollection({

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:common_models/common_models.dart';
 import 'package:equatable/equatable.dart';
 import 'package:music_repository/music_repository.dart';
 

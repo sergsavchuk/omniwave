@@ -1,7 +1,7 @@
-import 'package:music_repository/src/models/track_collection.dart';
+import 'package:common_models/common_models.dart';
 
-class Album extends TrackCollection {
-  const Album({
+class Playlist extends TrackCollection {
+  const Playlist({
     required super.id,
     required super.name,
     required super.artists,

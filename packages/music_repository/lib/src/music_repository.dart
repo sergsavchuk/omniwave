@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:async/async.dart';
-import 'package:music_repository/src/models/models.dart';
+import 'package:common_models/common_models.dart';
 import 'package:music_repository/src/spotify_music_repository.dart';
 import 'package:music_repository/src/youtube_music_repository.dart';
 import 'package:spotify_sdk/spotify_sdk.dart';

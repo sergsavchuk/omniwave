@@ -1,5 +1,5 @@
+import 'package:common_models/common_models.dart';
 import 'package:flutter/material.dart';
-import 'package:music_repository/music_repository.dart';
 import 'package:omniwave/common/app_scaffold/app_scaffold.dart';
 import 'package:omniwave/styles.dart';
 import 'package:omniwave/track_collection/track_collection.dart';

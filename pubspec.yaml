@@ -13,6 +13,8 @@ dependencies:
     path: packages/authentication_repository
   bloc: ^8.1.0
   bloc_concurrency: ^0.2.1
+  common_models:
+    path: packages/common_models
   envied: ^0.3.0
   equatable: ^2.0.5
   firebase_core: ^2.9.0

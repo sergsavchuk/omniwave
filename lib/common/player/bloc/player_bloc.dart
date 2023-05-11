@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:common_models/common_models.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:just_audio/just_audio.dart';

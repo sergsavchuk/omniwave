@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
+import 'package:common_models/common_models.dart';
 import 'package:equatable/equatable.dart';
 import 'package:music_repository/music_repository.dart';
 import 'package:rxdart/transformers.dart';

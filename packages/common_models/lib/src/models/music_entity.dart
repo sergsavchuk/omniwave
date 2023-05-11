@@ -1,5 +1,5 @@
+import 'package:common_models/common_models.dart';
 import 'package:equatable/equatable.dart';
-import 'package:music_repository/music_repository.dart';
 
 abstract class MusicEntity extends Equatable {
   const MusicEntity({
