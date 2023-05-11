@@ -7,6 +7,7 @@ abstract class AlbumsEvent extends Equatable {
 class AlbumsPageLoadRequested extends AlbumsEvent {
   const AlbumsPageLoadRequested(this.offset);
 
+  // TODO(sergsavchuk): delete because it is not used anymore ?
   final int offset;
 
   @override

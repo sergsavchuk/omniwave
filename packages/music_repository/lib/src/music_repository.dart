@@ -3,13 +3,14 @@ import 'package:async/async.dart';
 import 'package:common_models/common_models.dart';
 import 'package:music_repository/src/spotify_music_repository.dart';
 import 'package:music_repository/src/youtube_music_repository.dart';
-import 'package:spotify_sdk/spotify_sdk.dart';
-import 'package:youtube_explode_dart/youtube_explode_dart.dart' as yt;
 
 const unknown = 'Unknown';
-const pageSize = 20;
 
 abstract class MusicRepository {
+  List<MusicSource> get supportedSources;
+
+  Future<List<Album>> albums();
+
   Stream<List<Album>> albumsStream();
 
   Stream<List<Track>> tracksStream();
@@ -18,26 +19,21 @@ abstract class MusicRepository {
 
   Stream<SearchResult<Object>> search(String searchQuery);
 
+  Future<Uri> getTrackAudioUrl(Track track);
+
   Future<void> dispose();
 }
 
 class MusicRepositoryImpl implements MusicRepository {
-  MusicRepositoryImpl({required bool useYoutubeProxy})
-      : _youtubeMusicRepository =
-            YoutubeMusicRepository(useYoutubeProxy: useYoutubeProxy);
+  MusicRepositoryImpl({
+    required bool useYoutubeProxy,
+    required Stream<String> spotifyAccessTokenStream,
+  }) : _repositories = [
+          SpotifyMusicRepository(spotifyAccessTokenStream),
+          YoutubeMusicRepository(useYoutubeProxy: useYoutubeProxy)
+        ];
 
-  final SpotifyMusicRepository _spotifyMusicRepository =
-      SpotifyMusicRepository();
-  late final YoutubeMusicRepository _youtubeMusicRepository;
-
-  late final List<MusicRepository> _repositories = [
-    _spotifyMusicRepository,
-    _youtubeMusicRepository
-  ];
-
-  late final yt.YoutubeExplode _youtube;
-
-  bool get spotifyConnected => _spotifyMusicRepository.spotifyConnected;
+  late final List<MusicRepository> _repositories;
 
   final Map<MusicRepository, List<Album>> _albumsMap = {};
   StreamController<List<Album>>? _albumsStreamController;
@@ -50,47 +46,25 @@ class MusicRepositoryImpl implements MusicRepository {
 
   final _subscriptions = <StreamSubscription<dynamic>>[];
 
-  Future<void> connectSpotify(String clientId, String redirectUrl) =>
-      _spotifyMusicRepository.connectSpotify(clientId, redirectUrl);
-
-  Stream<Album> loadAlbumsPage(int offset) async* {
-    yield* _spotifyMusicRepository.loadAlbumsPage(offset);
-  }
+  @override
+  List<MusicSource> get supportedSources =>
+      [MusicSource.spotify, MusicSource.youtube];
 
   @override
   Stream<SearchResult<Object>> search(String searchQuery) => StreamGroup.merge(
         _repositories.map((element) => element.search(searchQuery)),
       );
 
-  Future<Uri> playYoutubeTrack(Track track) async {
-    final manifest = await _youtube.videos.streams.getManifest(track.id);
-    final audioStreamInfo = manifest.audioOnly.withHighestBitrate();
-    return audioStreamInfo.url;
-  }
-
-  Future<void> spotifyPlay(Track track) {
-    return SpotifySdk.play(
-      spotifyUri: 'spotify:track:${track.id}',
+  @override
+  Future<List<Album>> albums() async {
+    final albumsLists = await Future.wait<List<Album>>(
+      _repositories.map((repository) => repository.albums()),
     );
-  }
 
-  Stream<PlaybackState> spotifyPlayerState() {
-    return SpotifySdk.subscribePlayerState().map(
-      (state) => PlaybackState(
-        position: Duration(
-          milliseconds: state.playbackPosition,
-        ),
-        isPaused: state.isPaused,
-      ),
+    return albumsLists.fold<List<Album>>(
+      [],
+      (previousValue, element) => previousValue + element,
     );
-  }
-
-  Future<void> spotifyPausePlay() async {
-    await SpotifySdk.pause();
-  }
-
-  Future<void> spotifyResumePlay() async {
-    await SpotifySdk.resume();
   }
 
   @override
@@ -148,10 +122,26 @@ class MusicRepositoryImpl implements MusicRepository {
   }
 
   @override
+  Future<Uri> getTrackAudioUrl(Track track) {
+    for (final repository in _repositories) {
+      if (repository.supportedSources.contains(track.source)) {
+        return repository.getTrackAudioUrl(track);
+      }
+    }
+
+    throw UnsupportedError('MusicRepository.getTrackAudioUrl() is'
+        ' not supported for ${track.source}');
+  }
+
+  @override
   Future<void> dispose() async {
     for (final subscription in _subscriptions) {
       await subscription.cancel();
     }
+
+    await _albumsStreamController?.close();
+    await _playlistsStreamController?.close();
+    await _tracksStreamController?.close();
   }
 
   void _subscribeToSubrepoStream<T>(

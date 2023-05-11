@@ -6,6 +6,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:music_repository/music_repository.dart';
+import 'package:spotify_sdk/spotify_sdk.dart';
 
 part 'player_event.dart';
 
@@ -168,13 +169,61 @@ abstract class Player {
   Future<void> dispose();
 }
 
+// TODO(sergsavchuk): move all this player-related stuff to a separate
+//  repository
+class SpotifyConnector {
+  final String _spotifyScope = [
+    'user-library-read',
+    'streaming',
+    'user-read-email',
+    'user-read-private',
+  ].join(',');
+
+  bool _spotifySdkConnected = false;
+  final StreamController<String> _accessTokenStreamController =
+      StreamController();
+
+  bool get spotifyConnected => _spotifySdkConnected;
+
+  Stream<String> get accessTokenStream => _accessTokenStreamController.stream;
+
+  Future<void> connectSpotify(String clientId, String redirectUrl) async {
+    _spotifySdkConnected = await SpotifySdk.connectToSpotifyRemote(
+      // accessToken: accessToken,
+      clientId: clientId,
+      redirectUrl: redirectUrl,
+      scope: _spotifyScope,
+      playerName: 'Omniwave Player',
+    );
+
+    // TODO(sergsavchuk): use SpotifyApi instead of
+    // SpotifySdk to get the access token, cause
+    // SpotifySdk doesn't support desktop platforms
+    final accessToken = await SpotifySdk.getAccessToken(
+      clientId: clientId,
+      redirectUrl: redirectUrl,
+      scope: _spotifyScope,
+    );
+
+    _accessTokenStreamController.add(accessToken);
+  }
+}
+
 class SpotifyPlayer extends Player {
   SpotifyPlayer(
     super.musicRepository, {
     required super.onTrackPlayed,
     required super.onPlaybackPositionChange,
   }) {
-    _musicRepository.spotifyPlayerState().listen(_onPlayerStateChange);
+    // TODO(sergsavchuk): dispose subscription
+    SpotifySdk.subscribePlayerState()
+        .map(
+          (state) => PlaybackState(
+            position: Duration(milliseconds: state.playbackPosition),
+            isPaused: state.isPaused,
+          ),
+        )
+        .listen(_onPlayerStateChange);
 
     // TODO(sergsavchuk): use Ticker ?
     const timerPeriod = Duration(milliseconds: 50);
@@ -196,17 +245,18 @@ class SpotifyPlayer extends Player {
   @override
   Future<void> play(Track track) async {
     _track = track;
-    await _musicRepository.spotifyPlay(track);
+
+    await SpotifySdk.play(spotifyUri: 'spotify:track:${track.id}');
   }
 
   @override
   Future<void> pause() async {
-    await _musicRepository.spotifyPausePlay();
+    await SpotifySdk.pause();
   }
 
   @override
   Future<void> resume() async {
-    await _musicRepository.spotifyResumePlay();
+    await SpotifySdk.resume();
   }
 
   @override
@@ -253,7 +303,7 @@ class YoutubePlayer extends Player {
 
   @override
   Future<void> play(Track track) async {
-    final uri = await _musicRepository.playYoutubeTrack(track);
+    final uri = await _musicRepository.getTrackAudioUrl(track);
     await _player.setAudioSource(AudioSource.uri(uri));
     unawaited(_player.play());
   }

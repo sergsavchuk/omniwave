@@ -848,7 +848,7 @@ packages:
     source: hosted
     version: "0.8.0"
   spotify_sdk:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: spotify_sdk
       sha256: e61cb0b29d58db209847c0baf27084143d2288792b2e1d19bf8a3a3e2030a64b

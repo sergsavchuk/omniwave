@@ -26,23 +26,34 @@ void main() async {
   await authRepository.anonymousAuth();
   await authRepository.userStream.first;
 
-  runApp(OmniwaveApp(authenticationRepository: authRepository));
+  runApp(
+    OmniwaveApp(
+      authenticationRepository: authRepository,
+      spotifyConnector: SpotifyConnector(),
+    ),
+  );
 }
 
 class OmniwaveApp extends StatelessWidget {
   const OmniwaveApp({
     super.key,
     required AuthenticationRepository authenticationRepository,
-  }) : _authenticationRepository = authenticationRepository;
+    required SpotifyConnector spotifyConnector,
+  })  : _authenticationRepository = authenticationRepository,
+        _spotifyConnector = spotifyConnector;
 
   final AuthenticationRepository _authenticationRepository;
+  final SpotifyConnector _spotifyConnector;
 
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider(
-          create: (_) => MusicRepositoryImpl(useYoutubeProxy: kIsWeb),
+          create: (_) => MusicRepositoryImpl(
+            useYoutubeProxy: kIsWeb,
+            spotifyAccessTokenStream: _spotifyConnector.accessTokenStream,
+          ),
         ),
         RepositoryProvider.value(value: _authenticationRepository),
       ],
@@ -50,7 +61,7 @@ class OmniwaveApp extends StatelessWidget {
         providers: [
           BlocProvider(
             create: (context) => AppSettingsBloc(
-              musicRepository: context.read<MusicRepositoryImpl>(),
+              spotifyConnector: _spotifyConnector,
               authenticationRepository: _authenticationRepository,
             ),
           ),

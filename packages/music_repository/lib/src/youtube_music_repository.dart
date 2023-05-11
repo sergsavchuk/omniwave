@@ -15,6 +15,15 @@ class YoutubeMusicRepository implements MusicRepository {
   late final yt.YoutubeExplode _youtube;
 
   @override
+  List<MusicSource> get supportedSources => [MusicSource.youtube];
+
+  @override
+  Future<List<Album>> albums() async {
+    // TODO(sergsavchuk): implement albums
+    return [];
+  }
+
+  @override
   Stream<List<Album>> albumsStream() async* {
     // TODO(sergsavchuk): implement albumsStream
   }
@@ -53,6 +62,13 @@ class YoutubeMusicRepository implements MusicRepository {
   @override
   Stream<List<Track>> tracksStream() async* {
     // TODO(sergsavchuk): implement tracksStream
+  }
+
+  @override
+  Future<Uri> getTrackAudioUrl(Track track) async {
+    final manifest = await _youtube.videos.streams.getManifest(track.id);
+    final audioStreamInfo = manifest.audioOnly.withHighestBitrate();
+    return audioStreamInfo.url;
   }
 
   @override

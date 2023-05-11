@@ -1,20 +1,53 @@
+import 'dart:async';
+
 import 'package:common_models/common_models.dart';
 import 'package:music_repository/music_repository.dart';
 import 'package:spotify/spotify.dart' as spotify;
-import 'package:spotify_sdk/spotify_sdk.dart';
 
 class SpotifyMusicRepository implements MusicRepository {
+  SpotifyMusicRepository(Stream<String> accessTokenStream) {
+    _accessTokenSubscription = accessTokenStream.listen(_accessTokenChanged);
+  }
+
+  static const maxPageSize = 50;
+
   spotify.SpotifyApi? _spotifyApi;
-  bool _spotifySdkConnected = false;
+  StreamSubscription<String>? _accessTokenSubscription;
 
-  final String _spotifyScope = [
-    'user-library-read',
-    'streaming',
-    'user-read-email',
-    'user-read-private',
-  ].join(',');
+  // TODO(sergsavchuk): should we do something with the prev version
+  //  of the _spotifyApi when the access token changes?
+  void _accessTokenChanged(String accessToken) {
+    _spotifyApi = spotify.SpotifyApi.withAccessToken(accessToken);
+  }
 
-  bool get spotifyConnected => _spotifyApi != null && _spotifySdkConnected;
+  @override
+  List<MusicSource> get supportedSources => [MusicSource.spotify];
+
+  @override
+  Future<List<Album>> albums() async {
+    final spotifyApi = _spotifyApi;
+    if (spotifyApi == null) {
+      return [];
+    }
+
+    final albums = <Album>[];
+
+    var page = await spotifyApi.me.savedAlbums().getPage(maxPageSize, 0);
+
+    do {
+      if (page.items != null) {
+        albums.addAll(page.items!.map((e) => e.toOmniwaveAlbum()));
+      }
+
+      if (!page.isLast) {
+        page = await spotifyApi.me
+            .savedAlbums()
+            .getPage(maxPageSize, page.nextOffset);
+      }
+    } while (!page.isLast);
+
+    return albums;
+  }
 
   @override
   Stream<List<Album>> albumsStream() async* {
@@ -36,42 +69,16 @@ class SpotifyMusicRepository implements MusicRepository {
     // TODO(sergsavchuk): implement tracksStream
   }
 
-  Future<void> connectSpotify(String clientId, String redirectUrl) async {
-    _spotifySdkConnected = await SpotifySdk.connectToSpotifyRemote(
-      // accessToken: accessToken,
-      clientId: clientId,
-      redirectUrl: redirectUrl,
-      scope: _spotifyScope,
-      playerName: 'Omniwave Player',
-    );
-
-    // TODO(sergsavchuk): use SpotifyApi instead of
-    // SpotifySdk to get the access token, cause
-    // SpotifySdk doesn't support desktop platforms
-    final accessToken = await SpotifySdk.getAccessToken(
-      clientId: clientId,
-      redirectUrl: redirectUrl,
-      scope: _spotifyScope,
-    );
-
-    _spotifyApi = spotify.SpotifyApi.withAccessToken(accessToken);
-  }
-
-  Stream<Album> loadAlbumsPage(int offset) async* {
-    if (_spotifyApi != null) {
-      final page =
-          await _spotifyApi!.me.savedAlbums().getPage(pageSize, offset);
-      final spotifyAlbums = page.items;
-      if (spotifyAlbums != null) {
-        for (final spotifyAlbum in spotifyAlbums) {
-          yield spotifyAlbum.toOmniwaveAlbum();
-        }
-      }
-    }
+  @override
+  Future<Uri> getTrackAudioUrl(Track track) {
+    throw UnsupportedError("Spotify doesn't provide audio urls - you have to"
+        ' use the SpotifySdk to play a Spotify track');
   }
 
   @override
-  Future<void> dispose() async {}
+  Future<void> dispose() async {
+    await _accessTokenSubscription?.cancel();
+  }
 }
 
 extension SpotifyAlbumExtension on spotify.AlbumSimple {
