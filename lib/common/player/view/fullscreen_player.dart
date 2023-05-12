@@ -84,11 +84,11 @@ class FullscreenPlayer extends StatelessWidget {
               ),
               child: PlaybackProgressIndicator(),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: Insets.medium),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: Insets.medium),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
+                children: [
                   SizedBox.shrink(),
                   PrevTrackButton(),
                   TogglePlayButton(),

@@ -13,28 +13,28 @@ class PlayerControls extends StatelessWidget {
     return Container(
       height: 75,
       color: Colors.black,
-      child: Row(
+      child: const Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const CoverWithTrackName(),
+          CoverWithTrackName(),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Row(
                 mainAxisSize: MainAxisSize.min,
-                children: const [
+                children: [
                   PrevTrackButton(),
                   TogglePlayButton(),
                   NextTrackButton(),
                 ],
               ),
-              const SizedBox(
+              SizedBox(
                 width: 400,
                 child: PlaybackProgressIndicator(),
               )
             ],
           ),
-          const SizedBox.shrink(),
+          SizedBox.shrink(),
         ],
       ),
     );
@@ -48,13 +48,13 @@ class FloatingPlayerControls extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => Navigator.of(context).push(FullscreenPlayer.route()),
-      child: Card(
+      child: const Card(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
+              children: [
                 Expanded(
                   child: Padding(
                     padding: EdgeInsets.all(10),
@@ -64,7 +64,7 @@ class FloatingPlayerControls extends StatelessWidget {
                 TogglePlayButton(),
               ],
             ),
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: PlaybackProgressIndicator(),
             ),
