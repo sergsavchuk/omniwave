@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:omniwave/common/common.dart';
 import 'package:omniwave/env/env.dart';
+import 'package:player_repository/player_repository.dart';
 
 part 'app_settings_event.dart';
 
@@ -11,13 +11,13 @@ part 'app_settings_state.dart';
 
 class AppSettingsBloc extends Bloc<AppSettingsEvent, AppSettingsState> {
   AppSettingsBloc({
-    required SpotifyConnector spotifyConnector,
+    required PlayerRepository playerRepository,
     required AuthenticationRepository authenticationRepository,
-  })  : _spotifyConnector = spotifyConnector,
+  })  : _playerRepository = playerRepository,
         _authRepository = authenticationRepository,
         super(
           AppSettingsState(
-            spotifyConnected: spotifyConnector.spotifyConnected,
+            spotifyConnected: playerRepository.spotifyConnected,
             user: authenticationRepository.currentUser,
           ),
         ) {
@@ -28,7 +28,7 @@ class AppSettingsBloc extends Bloc<AppSettingsEvent, AppSettingsState> {
         .listen((user) => add(_AppSettingsUserChanged(user)));
   }
 
-  final SpotifyConnector _spotifyConnector;
+  final PlayerRepository _playerRepository;
   final AuthenticationRepository _authRepository;
 
   late final StreamSubscription<User> _userStreamSubscription;
@@ -37,12 +37,12 @@ class AppSettingsBloc extends Bloc<AppSettingsEvent, AppSettingsState> {
     AppSettingsSpotifyConnectRequested event,
     Emitter<AppSettingsState> emit,
   ) async {
-    if (_spotifyConnector.spotifyConnected) {
+    if (_playerRepository.spotifyConnected) {
       return;
     }
 
     try {
-      await _spotifyConnector.connectSpotify(
+      await _playerRepository.connectSpotify(
         Env.spotifyClientId,
         Env.spotifyRedirectUrl,
       );

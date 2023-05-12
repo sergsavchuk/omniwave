@@ -13,6 +13,7 @@ import 'package:omniwave/bloc/app_settings_bloc.dart';
 import 'package:omniwave/common/player/player_controls.dart';
 import 'package:omniwave/firebase_options.dart';
 import 'package:omniwave/track_collection/bloc/track_collection_bloc.dart';
+import 'package:player_repository/player_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +30,14 @@ void main() async {
   runApp(
     OmniwaveApp(
       authenticationRepository: authRepository,
-      spotifyConnector: SpotifyConnector(),
+      // TODO(sergsavchuk): store the spotifyScope inside MusicRepository ?
+      playerRepository: PlayerRepository(
+        spotifyScope: [
+          'user-library-read',
+          'user-read-email',
+          'user-read-private',
+        ],
+      ),
     ),
   );
 }
@@ -38,12 +46,12 @@ class OmniwaveApp extends StatelessWidget {
   const OmniwaveApp({
     super.key,
     required AuthenticationRepository authenticationRepository,
-    required SpotifyConnector spotifyConnector,
+    required PlayerRepository playerRepository,
   })  : _authenticationRepository = authenticationRepository,
-        _spotifyConnector = spotifyConnector;
+        _playerRepository = playerRepository;
 
   final AuthenticationRepository _authenticationRepository;
-  final SpotifyConnector _spotifyConnector;
+  final PlayerRepository _playerRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -52,22 +60,24 @@ class OmniwaveApp extends StatelessWidget {
         RepositoryProvider<MusicRepository>(
           create: (_) => MusicRepositoryImpl(
             useYoutubeProxy: kIsWeb,
-            spotifyAccessTokenStream: _spotifyConnector.accessTokenStream,
+            spotifyAccessTokenStream: _playerRepository.accessTokenStream,
           ),
         ),
+        RepositoryProvider.value(value: _playerRepository),
         RepositoryProvider.value(value: _authenticationRepository),
       ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
             create: (context) => AppSettingsBloc(
-              spotifyConnector: _spotifyConnector,
+              playerRepository: _playerRepository,
               authenticationRepository: _authenticationRepository,
             ),
           ),
           BlocProvider<PlayerBloc>(
             create: (context) => PlayerBloc(
               musicRepository: context.read<MusicRepository>(),
+              player: context.read<PlayerRepository>(),
             ),
           ),
         ],

@@ -25,11 +25,11 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl: any
-  just_audio: ^0.9.31
-  just_audio_mpv: ^0.1.6
   multi_split_view: ^2.2.0
   music_repository:
     path: packages/music_repository
+  player_repository:
+    path: packages/player_repository
   rxdart: ^0.27.7
   shared_preferences: ^2.0.17
   spotify_sdk: ^2.3.1
