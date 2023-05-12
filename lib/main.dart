@@ -49,7 +49,7 @@ class OmniwaveApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider(
+        RepositoryProvider<MusicRepository>(
           create: (_) => MusicRepositoryImpl(
             useYoutubeProxy: kIsWeb,
             spotifyAccessTokenStream: _spotifyConnector.accessTokenStream,
