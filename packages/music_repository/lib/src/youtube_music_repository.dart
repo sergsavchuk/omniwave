@@ -65,7 +65,7 @@ class YoutubeMusicRepository implements MusicRepository {
   }
 
   @override
-  Future<Uri> getTrackAudioUrl(Track track) async {
+  Future<Uri?> getTrackAudioUrl(Track track) async {
     final manifest = await _youtube.videos.streams.getManifest(track.id);
     final audioStreamInfo = manifest.audioOnly.withHighestBitrate();
     return audioStreamInfo.url;

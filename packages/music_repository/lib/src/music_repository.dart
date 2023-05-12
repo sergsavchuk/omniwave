@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:async/async.dart';
 import 'package:common_models/common_models.dart';
 import 'package:music_repository/src/spotify_music_repository.dart';
@@ -19,7 +20,7 @@ abstract class MusicRepository {
 
   Stream<SearchResult<Object>> search(String searchQuery);
 
-  Future<Uri> getTrackAudioUrl(Track track);
+  Future<Uri?> getTrackAudioUrl(Track track);
 
   Future<void> dispose();
 }
@@ -122,15 +123,16 @@ class MusicRepositoryImpl implements MusicRepository {
   }
 
   @override
-  Future<Uri> getTrackAudioUrl(Track track) {
+  Future<Uri?> getTrackAudioUrl(Track track) async {
     for (final repository in _repositories) {
       if (repository.supportedSources.contains(track.source)) {
         return repository.getTrackAudioUrl(track);
       }
     }
 
-    throw UnsupportedError('MusicRepository.getTrackAudioUrl() is'
+    log('MusicRepository.getTrackAudioUrl() is'
         ' not supported for ${track.source}');
+    return null;
   }
 
   @override

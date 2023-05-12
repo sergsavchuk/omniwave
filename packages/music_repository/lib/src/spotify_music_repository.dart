@@ -70,9 +70,10 @@ class SpotifyMusicRepository implements MusicRepository {
   }
 
   @override
-  Future<Uri> getTrackAudioUrl(Track track) {
-    throw UnsupportedError("Spotify doesn't provide audio urls - you have to"
-        ' use the SpotifySdk to play a Spotify track');
+  Future<Uri?> getTrackAudioUrl(Track track) async {
+    // Spotify doesn't provide audio urls - you have to use the SpotifySdk
+    // to play a Spotify track
+    return null;
   }
 
   @override

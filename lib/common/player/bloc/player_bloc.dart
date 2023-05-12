@@ -116,14 +116,12 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   Future<void> _play(Track track) async {
     if (track.source == MusicSource.spotify) {
       _players[track.source] ??= SpotifyPlayer(
-        _musicRepository,
         onTrackPlayed: () => add(PlayerNextTrackRequested()),
         onPlaybackPositionChange: (pos) =>
             add(PlayerPlaybackPositionChanged(pos)),
       );
     } else if (track.source == MusicSource.youtube) {
       _players[track.source] ??= YoutubePlayer(
-        _musicRepository,
         onTrackPlayed: () => add(PlayerNextTrackRequested()),
         onPlaybackPositionChange: (pos) =>
             add(PlayerPlaybackPositionChanged(pos)),
@@ -135,7 +133,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     }
 
     _player = _players[track.source];
-    await _player!.play(track);
+    await _player!
+        .play(track, audioUrl: await _musicRepository.getTrackAudioUrl(track));
   }
 
   @override
@@ -149,18 +148,16 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 }
 
 abstract class Player {
-  Player(
-    this._musicRepository, {
+  Player({
     required void Function() onTrackPlayed,
     required void Function(Duration) onPlaybackPositionChange,
   })  : _onPlaybackPositionChange = onPlaybackPositionChange,
         _onTrackPlayed = onTrackPlayed;
 
-  final MusicRepositoryImpl _musicRepository;
   final VoidCallback _onTrackPlayed;
   final void Function(Duration position) _onPlaybackPositionChange;
 
-  Future<void> play(Track track);
+  Future<void> play(Track track, {Uri? audioUrl});
 
   Future<void> pause();
 
@@ -210,8 +207,7 @@ class SpotifyConnector {
 }
 
 class SpotifyPlayer extends Player {
-  SpotifyPlayer(
-    super.musicRepository, {
+  SpotifyPlayer({
     required super.onTrackPlayed,
     required super.onPlaybackPositionChange,
   }) {
@@ -243,7 +239,7 @@ class SpotifyPlayer extends Player {
   Track? _track;
 
   @override
-  Future<void> play(Track track) async {
+  Future<void> play(Track track, {Uri? audioUrl}) async {
     _track = track;
 
     await SpotifySdk.play(spotifyUri: 'spotify:track:${track.id}');
@@ -278,8 +274,7 @@ class SpotifyPlayer extends Player {
 }
 
 class YoutubePlayer extends Player {
-  YoutubePlayer(
-    super.musicRepository, {
+  YoutubePlayer({
     required super.onTrackPlayed,
     required super.onPlaybackPositionChange,
   }) {
@@ -302,9 +297,8 @@ class YoutubePlayer extends Player {
   }
 
   @override
-  Future<void> play(Track track) async {
-    final uri = await _musicRepository.getTrackAudioUrl(track);
-    await _player.setAudioSource(AudioSource.uri(uri));
+  Future<void> play(Track track, {Uri? audioUrl}) async {
+    await _player.setAudioSource(AudioSource.uri(audioUrl!));
     unawaited(_player.play());
   }
 
