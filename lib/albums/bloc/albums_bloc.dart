@@ -14,7 +14,7 @@ class AlbumsBloc extends Bloc<AlbumsEvent, AlbumsState> {
     on<AlbumsPageLoadRequested>(_loadRequested);
   }
 
-  final MusicRepositoryImpl musicRepository;
+  final MusicRepository musicRepository;
 
   FutureOr<void> _loadRequested(
     AlbumsPageLoadRequested event,

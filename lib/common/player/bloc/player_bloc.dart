@@ -13,7 +13,7 @@ part 'player_event.dart';
 part 'player_state.dart';
 
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
-  PlayerBloc({required MusicRepositoryImpl musicRepository})
+  PlayerBloc({required MusicRepository musicRepository})
       : _musicRepository = musicRepository,
         super(const PlayerState()) {
     on<PlayerToggleRequested>(_toggleRequested);
@@ -23,7 +23,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     on<PlayerPrevTrackRequested>(_prevTrackRequested);
   }
 
-  final MusicRepositoryImpl _musicRepository;
+  final MusicRepository _musicRepository;
   final Map<MusicSource, Player> _players = {};
   Player? _player;
 

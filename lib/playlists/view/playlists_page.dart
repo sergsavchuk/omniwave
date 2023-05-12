@@ -18,7 +18,7 @@ class PlaylistsPage extends StatelessWidget {
       category: NavBarItem.playlists,
       body: BlocProvider(
         create: (context) =>
-            PlaylistsBloc(musicRepository: context.read<MusicRepositoryImpl>())
+            PlaylistsBloc(musicRepository: context.read<MusicRepository>())
               ..add(const PlaylistsPageLoadRequested(0)),
         child: const PlaylistsView(),
       ),

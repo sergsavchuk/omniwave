@@ -67,7 +67,7 @@ class OmniwaveApp extends StatelessWidget {
           ),
           BlocProvider<PlayerBloc>(
             create: (context) => PlayerBloc(
-              musicRepository: context.read<MusicRepositoryImpl>(),
+              musicRepository: context.read<MusicRepository>(),
             ),
           ),
         ],

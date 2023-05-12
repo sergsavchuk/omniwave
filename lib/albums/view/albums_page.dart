@@ -18,7 +18,7 @@ class AlbumsPage extends StatelessWidget {
       category: NavBarItem.albums,
       body: BlocProvider(
         create: (context) =>
-            AlbumsBloc(musicRepository: context.read<MusicRepositoryImpl>())
+            AlbumsBloc(musicRepository: context.read<MusicRepository>())
               ..add(const AlbumsPageLoadRequested(0)),
         child: BlocListener<AppSettingsBloc, AppSettingsState>(
           listenWhen: (prev, curr) =>
