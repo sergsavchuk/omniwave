@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:bloc/bloc.dart';
+import 'package:common_models/common_models.dart';
 import 'package:equatable/equatable.dart';
 import 'package:omniwave/env/env.dart';
 import 'package:player_repository/player_repository.dart';

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:authentication_repository/src/models/user.dart';
+import 'package:common_models/common_models.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 class AuthenticationRepository {

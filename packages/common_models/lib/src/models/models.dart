@@ -6,3 +6,4 @@ export 'playlist.dart';
 export 'search_result.dart';
 export 'track.dart';
 export 'track_collection.dart';
+export 'user.dart';

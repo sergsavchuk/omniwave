@@ -8,6 +8,8 @@ environment:
   flutter: ">=3.10.0"
 
 dependencies:
+  common_models:
+    path: ../common_models
   equatable: ^2.0.5
   firebase_auth: ^4.4.1
   firebase_core: ^2.9.0
