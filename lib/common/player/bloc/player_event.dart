@@ -37,3 +37,12 @@ class PlayerPrevTrackRequested extends PlayerEvent {
   @override
   List<Object?> get props => [];
 }
+
+class PlayerTrackCollectionPlayToggleRequested extends PlayerEvent {
+  const PlayerTrackCollectionPlayToggleRequested(this.trackCollection);
+
+  final TrackCollection trackCollection;
+
+  @override
+  List<Object?> get props => [trackCollection];
+}

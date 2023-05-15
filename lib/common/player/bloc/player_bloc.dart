@@ -20,6 +20,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     on<PlayerPlaybackPositionChanged>(_playbackPositionChanged);
     on<PlayerNextTrackRequested>(_nextTrackRequested);
     on<PlayerPrevTrackRequested>(_prevTrackRequested);
+    on<PlayerTrackCollectionPlayToggleRequested>(
+      _trackCollectionPlayToggleRequested,
+    );
 
     player
       ..onTrackPlayed = (() => add(PlayerNextTrackRequested()))
@@ -117,6 +120,36 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     }
 
     if (state.isPlaying) {
+      await _player.pause();
+      emit(state.copyWith(isPlaying: false));
+    } else {
+      await _player.resume();
+      emit(state.copyWith(isPlaying: true));
+    }
+  }
+
+  FutureOr<void> _trackCollectionPlayToggleRequested(
+    PlayerTrackCollectionPlayToggleRequested event,
+    Emitter<PlayerState> emit,
+  ) async {
+    if (event.trackCollection.tracks.isEmpty) {
+      return;
+    }
+
+    if (event.trackCollection != state.currentTrackCollection) {
+      emit(
+        PlayerState(
+          isPlaying: true,
+          currentTrack: event.trackCollection.tracks.first,
+          currentTrackCollection: event.trackCollection,
+        ),
+      );
+      await _player.play(
+        event.trackCollection.tracks.first,
+        audioUrl: await _musicRepository
+            .getTrackAudioUrl(event.trackCollection.tracks.first),
+      );
+    } else if (state.isPlaying) {
       await _player.pause();
       emit(state.copyWith(isPlaying: false));
     } else {

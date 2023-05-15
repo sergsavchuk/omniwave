@@ -315,26 +315,24 @@ class _PlayTrackCollectionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => trackCollection.tracks.isNotEmpty
-          ? context.read<PlayerBloc>().add(
-                PlayerTrackPlayRequested(
-                  trackCollection.tracks.first,
-                  trackCollection: trackCollection,
-                ),
-              )
-          : null,
-      child: DecoratedBox(
+      onTap: () => context.read<PlayerBloc>().add(
+            PlayerTrackCollectionPlayToggleRequested(trackCollection),
+          ),
+      child: Container(
+        width: size,
+        height: size,
+        // alignment: Alignment.topLeft,
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.primary,
           shape: BoxShape.circle,
         ),
         child: BlocBuilder<PlayerBloc, PlayerState>(
           builder: (context, state) => Icon(
             state.currentTrackCollection == trackCollection && state.isPlaying
-                ? Icons.pause_circle
-                : Icons.play_circle,
-            size: size,
-            color: Theme.of(context).colorScheme.primary,
+                ? Icons.pause_sharp
+                : Icons.play_arrow_sharp,
+            size: size * .75,
+            color: Theme.of(context).colorScheme.surface,
           ),
         ),
       ),
