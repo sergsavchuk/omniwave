@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:common_models/common_models.dart';
 import 'package:music_repository/music_repository.dart';
-import 'package:music_repository/src/cache_music_repository.dart';
+import 'package:music_repository/src/provider/cache_music_provider.dart';
 import 'package:spotify/spotify.dart' as spotify;
 
-class SpotifyMusicRepository implements MusicRepositoryWithCacheCapability {
-  SpotifyMusicRepository(Stream<String> accessTokenStream) {
+class SpotifyMusicProvider implements MusicProviderWithCacheCapability {
+  SpotifyMusicProvider(Stream<String> accessTokenStream) {
     _accessTokenSubscription = accessTokenStream.listen(_accessTokenChanged);
   }
 

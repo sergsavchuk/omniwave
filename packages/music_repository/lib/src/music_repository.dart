@@ -1,68 +1,50 @@
 import 'dart:async';
 import 'dart:developer';
+
 import 'package:async/async.dart';
 import 'package:common_models/common_models.dart';
 import 'package:music_repository/src/cache/music_cache.dart';
-import 'package:music_repository/src/cache_music_repository.dart';
-import 'package:music_repository/src/spotify_music_repository.dart';
-import 'package:music_repository/src/youtube_music_repository.dart';
+
+import 'package:music_repository/src/provider/provider.dart';
 
 // TODO(sergsavchuk): move this constant somewhere?
 const unknown = 'Unknown';
 
-abstract class MusicRepository {
-  List<MusicSource> get supportedSources;
-
-  Future<List<Album>> albums();
-
-  Stream<List<Album>> albumsStream();
-
-  Stream<List<Track>> tracksStream();
-
-  Stream<List<Playlist>> playlistsStream();
-
-  Stream<SearchResult<Object>> search(String searchQuery);
-
-  Future<Uri?> getTrackAudioUrl(Track track);
-
-  Future<void> dispose();
-}
-
-class MusicRepositoryImpl implements MusicRepository {
-  MusicRepositoryImpl({
+class MusicRepository implements MusicProvider {
+  MusicRepository({
     required bool useYoutubeProxy,
     required Stream<String> spotifyAccessTokenStream,
     MusicCache? spotifyCache,
     bool synchronizeCacheOnSpotifyConnect = false,
-  }) : _repositories = [
-          CacheMusicRepository(
-            SpotifyMusicRepository(spotifyAccessTokenStream),
+  }) : _providers = [
+          CacheMusicProvider(
+            SpotifyMusicProvider(spotifyAccessTokenStream),
             spotifyCache,
           ),
-          YoutubeMusicRepository(useYoutubeProxy: useYoutubeProxy)
+          YoutubeMusicProvider(useYoutubeProxy: useYoutubeProxy)
         ] {
     if (synchronizeCacheOnSpotifyConnect) {
       spotifyAccessTokenStream.first.then((value) => synchronizeCache());
     }
   }
 
-  late final List<MusicRepository> _repositories;
+  late final List<MusicProvider> _providers;
 
-  final Map<MusicRepository, List<Album>> _albumsMap = {};
+  final Map<MusicProvider, List<Album>> _albumsMap = {};
   StreamController<List<Album>>? _albumsStreamController;
 
-  final Map<MusicRepository, List<Playlist>> _playlistsMap = {};
+  final Map<MusicProvider, List<Playlist>> _playlistsMap = {};
   StreamController<List<Playlist>>? _playlistsStreamController;
 
-  final Map<MusicRepository, List<Track>> _tracksMap = {};
+  final Map<MusicProvider, List<Track>> _tracksMap = {};
   StreamController<List<Track>>? _tracksStreamController;
 
   final _subscriptions = <StreamSubscription<dynamic>>[];
 
   void synchronizeCache() {
-    for (final repository in _repositories) {
-      if (repository is CacheMusicRepository) {
-        repository.synchronize();
+    for (final provider in _providers) {
+      if (provider is CacheMusicProvider) {
+        provider.synchronize();
       }
     }
   }
@@ -73,13 +55,13 @@ class MusicRepositoryImpl implements MusicRepository {
 
   @override
   Stream<SearchResult<Object>> search(String searchQuery) => StreamGroup.merge(
-        _repositories.map((element) => element.search(searchQuery)),
+        _providers.map((element) => element.search(searchQuery)),
       );
 
   @override
   Future<List<Album>> albums() async {
     final albumsLists = await Future.wait<List<Album>>(
-      _repositories.map((repository) => repository.albums()),
+      _providers.map((provider) => provider.albums()),
     );
 
     return albumsLists.fold<List<Album>>(
@@ -93,12 +75,12 @@ class MusicRepositoryImpl implements MusicRepository {
     if (_albumsStreamController == null) {
       _albumsStreamController = StreamController.broadcast();
 
-      for (final repository in _repositories) {
-        _subscribeToSubrepoStream(
+      for (final provider in _providers) {
+        _subscribeToSubProviderStream(
           _albumsStreamController!,
           _albumsMap,
-          repository,
-          repository.albumsStream(),
+          provider,
+          provider.albumsStream(),
         );
       }
     }
@@ -111,12 +93,12 @@ class MusicRepositoryImpl implements MusicRepository {
     if (_playlistsStreamController == null) {
       _playlistsStreamController = StreamController();
 
-      for (final repository in _repositories) {
-        _subscribeToSubrepoStream(
+      for (final provider in _providers) {
+        _subscribeToSubProviderStream(
           _playlistsStreamController!,
           _playlistsMap,
-          repository,
-          repository.playlistsStream(),
+          provider,
+          provider.playlistsStream(),
         );
       }
     }
@@ -129,12 +111,12 @@ class MusicRepositoryImpl implements MusicRepository {
     if (_tracksStreamController == null) {
       _tracksStreamController = StreamController();
 
-      for (final repository in _repositories) {
-        _subscribeToSubrepoStream(
+      for (final provider in _providers) {
+        _subscribeToSubProviderStream(
           _tracksStreamController!,
           _tracksMap,
-          repository,
-          repository.tracksStream(),
+          provider,
+          provider.tracksStream(),
         );
       }
     }
@@ -144,13 +126,13 @@ class MusicRepositoryImpl implements MusicRepository {
 
   @override
   Future<Uri?> getTrackAudioUrl(Track track) async {
-    for (final repository in _repositories) {
-      if (repository.supportedSources.contains(track.source)) {
-        return repository.getTrackAudioUrl(track);
+    for (final provider in _providers) {
+      if (provider.supportedSources.contains(track.source)) {
+        return provider.getTrackAudioUrl(track);
       }
     }
 
-    log('MusicRepository.getTrackAudioUrl() is'
+    log('MusicProvider.getTrackAudioUrl() is'
         ' not supported for ${track.source}');
     return null;
   }
@@ -166,15 +148,15 @@ class MusicRepositoryImpl implements MusicRepository {
     await _tracksStreamController?.close();
   }
 
-  void _subscribeToSubrepoStream<T>(
+  void _subscribeToSubProviderStream<T>(
     StreamController<List<T>> streamController,
-    Map<MusicRepository, List<T>> accumulatingMap,
-    MusicRepository repository,
+    Map<MusicProvider, List<T>> accumulatingMap,
+    MusicProvider provider,
     Stream<List<T>> stream,
   ) {
     _subscriptions.add(
       stream.listen((items) {
-        accumulatingMap[repository] = items;
+        accumulatingMap[provider] = items;
         streamController.add(
           accumulatingMap.values.fold(
             [],

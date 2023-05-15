@@ -3,12 +3,13 @@ import 'dart:convert';
 import 'package:common_models/common_models.dart';
 import 'package:http/http.dart' as http;
 import 'package:music_repository/music_repository.dart';
+import 'package:music_repository/src/provider/music_provider.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart' as yt;
 
 const webProxyUrl = 'http://localhost:8080/';
 
-class YoutubeMusicRepository implements MusicRepository {
-  YoutubeMusicRepository({required bool useYoutubeProxy})
+class YoutubeMusicProvider implements MusicProvider {
+  YoutubeMusicProvider({required bool useYoutubeProxy})
       : _youtube =
             yt.YoutubeExplode(useYoutubeProxy ? _ProxyHttpClient() : null);
 

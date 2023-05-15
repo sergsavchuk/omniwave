@@ -1,14 +1,14 @@
 import 'dart:async';
 
 import 'package:common_models/common_models.dart';
-import 'package:music_repository/music_repository.dart';
 import 'package:music_repository/src/cache/cache_capability.dart';
 import 'package:music_repository/src/cache/music_cache.dart';
+import 'package:music_repository/src/provider/music_provider.dart';
 
-class CacheMusicRepository implements MusicRepository {
-  CacheMusicRepository(this._musicRepository, this._musicCache);
+class CacheMusicProvider implements MusicProvider {
+  CacheMusicProvider(this._musicProvider, this._musicCache);
 
-  final MusicRepositoryWithCacheCapability _musicRepository;
+  final MusicProviderWithCacheCapability _musicProvider;
   final MusicCache? _musicCache;
 
   final StreamController<List<Album>> _albumsStreamController =
@@ -21,7 +21,7 @@ class CacheMusicRepository implements MusicRepository {
     }
 
     if ((await musicCache.hasCachedAlbums()) &&
-        await _musicRepository.albumsCacheOutdated(
+        await _musicProvider.albumsCacheOutdated(
           await musicCache.cachedAlbums(),
         )) {
       await _musicCache?.clearAlbums();
@@ -32,7 +32,7 @@ class CacheMusicRepository implements MusicRepository {
   }
 
   @override
-  List<MusicSource> get supportedSources => _musicRepository.supportedSources;
+  List<MusicSource> get supportedSources => _musicProvider.supportedSources;
 
   @override
   Future<List<Album>> albums() async {
@@ -41,7 +41,7 @@ class CacheMusicRepository implements MusicRepository {
       return musicCache!.cachedAlbums();
     }
 
-    final albums = await _musicRepository.albums();
+    final albums = await _musicProvider.albums();
     await musicCache?.cacheAlbums(albums);
 
     _albumsStreamController.add(albums);
@@ -54,32 +54,32 @@ class CacheMusicRepository implements MusicRepository {
 
   @override
   Future<Uri?> getTrackAudioUrl(Track track) {
-    return _musicRepository.getTrackAudioUrl(track);
+    return _musicProvider.getTrackAudioUrl(track);
   }
 
   @override
   Stream<List<Playlist>> playlistsStream() {
-    return _musicRepository.playlistsStream();
+    return _musicProvider.playlistsStream();
   }
 
   @override
   Stream<SearchResult<Object>> search(String searchQuery) {
-    return _musicRepository.search(searchQuery);
+    return _musicProvider.search(searchQuery);
   }
 
   @override
   Stream<List<Track>> tracksStream() {
-    return _musicRepository.tracksStream();
+    return _musicProvider.tracksStream();
   }
 
   @override
   Future<void> dispose() async {
-    await _musicRepository.dispose();
+    await _musicProvider.dispose();
 
     await _albumsStreamController.close();
   }
 }
 
-abstract class MusicRepositoryWithCacheCapability
+abstract class MusicProviderWithCacheCapability
     with CacheCapability
-    implements MusicRepository {}
+    implements MusicProvider {}
