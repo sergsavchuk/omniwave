@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:common_models/common_models.dart';
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,6 +11,8 @@ import 'package:omniwave/common/player/bloc/player_bloc.dart';
 import 'package:omniwave/styles.dart';
 import 'package:omniwave/track_collection/track_collection.dart';
 import 'package:omniwave/utils.dart';
+
+const gradientBreakPosition = 70;
 
 class TrackCollectionPage extends StatelessWidget {
   const TrackCollectionPage({
@@ -37,6 +40,7 @@ class TrackCollectionPage extends StatelessWidget {
     return BlocProvider(
       create: (_) => TrackCollectionBloc(),
       child: AppScaffold(
+        noTopPadding: true,
         body: Utils.isSmallScreen
             ? SmallTrackCollectionView(trackCollection: trackCollection)
             : const SizedBox.shrink(),
@@ -82,6 +86,8 @@ class _SmallTrackCollectionViewState extends State<SmallTrackCollectionView> {
 
   @override
   Widget build(BuildContext context) {
+    final gradientColor = Theme.of(context).primaryColor;
+
     return Stack(
       children: [
         CustomScrollView(
@@ -109,38 +115,61 @@ class _SmallTrackCollectionViewState extends State<SmallTrackCollectionView> {
               flexibleSpace: _ExpandedAppBarContent(
                 expandedAppBarHeight: expandedAppBarHeight,
                 trackCollection: widget.trackCollection,
+                gradientColor: gradientColor,
               ),
             ),
             SliverList(
               delegate: SliverChildListDelegate([
-                Padding(
-                  padding: const EdgeInsets.only(left: Insets.small),
-                  child: Text(
-                    widget.trackCollection.name,
-                    style: Theme.of(context).textTheme.titleLarge,
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        gradientColor.blend(
+                          Theme.of(context).colorScheme.surface,
+                          gradientBreakPosition,
+                        ),
+                        Theme.of(context).colorScheme.surface
+                      ],
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: Insets.small),
-                  child: Text(
-                    Helpers.joinArtists(widget.trackCollection.artists),
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: playButtonInset),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
-                        onPressed: () => {},
-                        icon: const Icon(Icons.favorite_outline),
+                      Padding(
+                        padding: const EdgeInsets.only(left: Insets.small),
+                        child: Text(
+                          widget.trackCollection.name,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
                       ),
-                      _PlayTrackCollectionButton(
-                        key: playButtonKey,
-                        trackCollection: widget.trackCollection,
-                        size: playButtonSize,
+                      Padding(
+                        padding: const EdgeInsets.only(left: Insets.small),
+                        child: Text(
+                          Helpers.joinArtists(widget.trackCollection.artists),
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: playButtonInset,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                              onPressed: () => {},
+                              icon: const Icon(Icons.favorite_outline),
+                            ),
+                            _PlayTrackCollectionButton(
+                              key: playButtonKey,
+                              trackCollection: widget.trackCollection,
+                              size: playButtonSize,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -160,7 +189,7 @@ class _SmallTrackCollectionViewState extends State<SmallTrackCollectionView> {
         ),
         BlocBuilder<TrackCollectionBloc, TrackCollectionState>(
           builder: (context, state) => Positioned(
-            top: collapsedAppBarHeight - _calculateAppBarPlayButtonOffset(),
+            top: _appBarBottomPos(context) - _calculateAppBarPlayButtonOffset(),
             right: playButtonInset,
             child: Visibility(
               visible: _shouldShowAppBarPlayButton(),
@@ -193,7 +222,7 @@ class _SmallTrackCollectionViewState extends State<SmallTrackCollectionView> {
     if (playButtonRO != null && appBarRO != null && appBarRO.child != null) {
       // calculate the distance between the app bar and the play button
       final diff = appBarRO.child!.localToGlobal(Offset.zero).dy +
-          collapsedAppBarHeight -
+          _appBarBottomPos(context) -
           playButtonRO.localToGlobal(Offset.zero).dy;
 
       // limit the offset to half the size of the button
@@ -203,6 +232,9 @@ class _SmallTrackCollectionViewState extends State<SmallTrackCollectionView> {
     }
   }
 
+  double _appBarBottomPos(BuildContext context) =>
+      collapsedAppBarHeight + MediaQuery.paddingOf(context).top;
+
   bool _shouldShowAppBarPlayButton() => _calculateAppBarPlayButtonOffset() >= 0;
 }
 
@@ -210,34 +242,51 @@ class _ExpandedAppBarContent extends StatelessWidget {
   const _ExpandedAppBarContent({
     required this.expandedAppBarHeight,
     required this.trackCollection,
+    required this.gradientColor,
   });
 
+  final Color gradientColor;
   final double expandedAppBarHeight;
   final TrackCollection trackCollection;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: BlocBuilder<TrackCollectionBloc, TrackCollectionState>(
-        builder: (context, state) => Padding(
-          padding: EdgeInsets.only(
-            top: Insets.large *
-                _invertedScrollPercent(
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            gradientColor,
+            gradientColor.blend(
+              Theme.of(context).colorScheme.surface,
+              gradientBreakPosition,
+            ),
+          ],
+        ),
+      ),
+      child: Center(
+        child: BlocBuilder<TrackCollectionBloc, TrackCollectionState>(
+          builder: (context, state) => Padding(
+            padding: EdgeInsets.only(
+              top: Insets.large *
+                  _invertedScrollPercent(
+                    state.scrollPosition,
+                    expandedAppBarHeight,
+                  ),
+            ),
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: Opacity(
+                // TODO(sergsavchuk): use FadeTransition with curved animation
+                opacity: _invertedScrollPercent(
                   state.scrollPosition,
                   expandedAppBarHeight,
                 ),
-          ),
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: Opacity(
-              // TODO(sergsavchuk): use FadeTransition with curved animation
-              opacity: _invertedScrollPercent(
-                state.scrollPosition,
-                expandedAppBarHeight,
-              ),
-              child: Image.network(
-                trackCollection.imageUrl ?? Urls.defaultCover,
-                fit: BoxFit.fitHeight,
+                child: Image.network(
+                  trackCollection.imageUrl ?? Urls.defaultCover,
+                  fit: BoxFit.fitHeight,
+                ),
               ),
             ),
           ),

@@ -73,15 +73,26 @@ enum NavBarItem {
 }
 
 class AppScaffold extends StatelessWidget {
-  const AppScaffold({super.key, required this.body, required this.category});
+  const AppScaffold({
+    super.key,
+    required this.body,
+    required this.category,
+    this.noTopPadding = false,
+  });
 
   final Widget body;
   final NavBarItem category;
 
+  final bool noTopPadding;
+
   @override
   Widget build(BuildContext context) {
     return Utils.isSmallScreen
-        ? SmallAppScaffoldView(body: body, category: category)
+        ? SmallAppScaffoldView(
+            body: body,
+            category: category,
+            noTopPadding: noTopPadding,
+          )
         : AppScaffoldView(body: body, category: category);
   }
 }
@@ -221,15 +232,19 @@ class SmallAppScaffoldView extends StatelessWidget {
     super.key,
     required this.body,
     required this.category,
+    required this.noTopPadding,
   });
 
   final Widget body;
   final NavBarItem category;
 
+  final bool noTopPadding;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
+        top: !noTopPadding,
         child: Stack(
           fit: StackFit.expand,
           children: [
