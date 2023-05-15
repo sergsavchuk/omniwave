@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'package:async/async.dart';
 import 'package:common_models/common_models.dart';
 import 'package:music_repository/src/cache/music_cache.dart';
-
 import 'package:music_repository/src/provider/provider.dart';
 
 // TODO(sergsavchuk): move this constant somewhere?
@@ -15,18 +14,13 @@ class MusicRepository implements MusicProvider {
     required bool useYoutubeProxy,
     required Stream<String> spotifyAccessTokenStream,
     MusicCache? spotifyCache,
-    bool synchronizeCacheOnSpotifyConnect = false,
   }) : _providers = [
           CacheMusicProvider(
             SpotifyMusicProvider(spotifyAccessTokenStream),
             spotifyCache,
           ),
           YoutubeMusicProvider(useYoutubeProxy: useYoutubeProxy)
-        ] {
-    if (synchronizeCacheOnSpotifyConnect) {
-      spotifyAccessTokenStream.first.then((value) => synchronizeCache());
-    }
-  }
+        ];
 
   late final List<MusicProvider> _providers;
 
@@ -41,12 +35,29 @@ class MusicRepository implements MusicProvider {
 
   final _subscriptions = <StreamSubscription<dynamic>>[];
 
-  void synchronizeCache() {
+  bool _syncInProgress = false;
+  final StreamController<bool> _syncInProgressStreamController =
+      StreamController.broadcast();
+
+  Stream<bool> get syncInProgressStream =>
+      _syncInProgressStreamController.stream;
+
+  Future<void> synchronizeCache() async {
+    if (_syncInProgress) {
+      return;
+    }
+
+    _syncInProgress = true;
+    _syncInProgressStreamController.add(_syncInProgress);
+
     for (final provider in _providers) {
       if (provider is CacheMusicProvider) {
-        provider.synchronize();
+        await provider.synchronize();
       }
     }
+
+    _syncInProgress = false;
+    _syncInProgressStreamController.add(_syncInProgress);
   }
 
   @override

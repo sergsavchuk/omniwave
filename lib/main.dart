@@ -36,16 +36,23 @@ void main() async {
     ..registerAdapter(MusicSourceAdapter())
     ..registerAdapter(DurationAdapter());
 
+  final playerRepository = PlayerRepository(
+    // TODO(sergsavchuk): store the spotifyScope inside MusicRepository ?
+    spotifyScope: [
+      'user-library-read',
+      'user-read-email',
+      'user-read-private',
+    ],
+  );
+
   runApp(
     OmniwaveApp(
       authenticationRepository: authRepository,
-      // TODO(sergsavchuk): store the spotifyScope inside MusicRepository ?
-      playerRepository: PlayerRepository(
-        spotifyScope: [
-          'user-library-read',
-          'user-read-email',
-          'user-read-private',
-        ],
+      playerRepository: playerRepository,
+      musicRepository: MusicRepository(
+        useYoutubeProxy: kIsWeb,
+        spotifyAccessTokenStream: playerRepository.accessTokenStream,
+        spotifyCache: HiveMusicCache(MusicSource.spotify),
       ),
     ),
   );
@@ -56,24 +63,20 @@ class OmniwaveApp extends StatelessWidget {
     super.key,
     required AuthenticationRepository authenticationRepository,
     required PlayerRepository playerRepository,
+    required MusicRepository musicRepository,
   })  : _authenticationRepository = authenticationRepository,
-        _playerRepository = playerRepository;
+        _playerRepository = playerRepository,
+        _musicRepository = musicRepository;
 
   final AuthenticationRepository _authenticationRepository;
   final PlayerRepository _playerRepository;
+  final MusicRepository _musicRepository;
 
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider<MusicRepository>(
-          create: (_) => MusicRepository(
-            useYoutubeProxy: kIsWeb,
-            spotifyAccessTokenStream: _playerRepository.accessTokenStream,
-            spotifyCache: HiveMusicCache(MusicSource.spotify),
-            synchronizeCacheOnSpotifyConnect: true,
-          ),
-        ),
+        RepositoryProvider.value(value: _musicRepository),
         RepositoryProvider.value(value: _playerRepository),
         RepositoryProvider.value(value: _authenticationRepository),
       ],
@@ -81,6 +84,7 @@ class OmniwaveApp extends StatelessWidget {
         providers: [
           BlocProvider(
             create: (context) => AppSettingsBloc(
+              musicRepository: _musicRepository,
               playerRepository: _playerRepository,
               authenticationRepository: _authenticationRepository,
             ),
