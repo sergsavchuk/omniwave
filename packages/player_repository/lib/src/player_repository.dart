@@ -19,7 +19,7 @@ class PlayerRepository extends Player {
   final String _spotifyScope;
   bool _spotifySdkConnected = false;
   final StreamController<String> _accessTokenStreamController =
-      StreamController();
+      StreamController.broadcast();
 
   bool get spotifyConnected => _spotifySdkConnected;
 

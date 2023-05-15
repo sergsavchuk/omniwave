@@ -1,5 +1,9 @@
 import 'package:common_models/common_models.dart';
+import 'package:hive/hive.dart';
 
+part 'generated/track.g.dart';
+
+@HiveType(typeId: 2)
 class Track extends MusicEntity {
   const Track({
     required super.id,
@@ -11,7 +15,9 @@ class Track extends MusicEntity {
     required this.albumId,
   });
 
+  @HiveField(16)
   final Duration duration;
+  @HiveField(17)
   final String albumId;
 
   @override

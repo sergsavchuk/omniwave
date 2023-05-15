@@ -1,12 +1,14 @@
 import 'dart:developer';
 
 import 'package:authentication_repository/authentication_repository.dart';
+import 'package:common_models/common_models.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:music_repository/music_repository.dart';
 import 'package:omniwave/albums/albums.dart';
 import 'package:omniwave/bloc/app_settings_bloc.dart';
@@ -26,6 +28,13 @@ void main() async {
   final authRepository = AuthenticationRepository();
   await authRepository.anonymousAuth();
   await authRepository.userStream.first;
+
+  await Hive.initFlutter();
+  Hive
+    ..registerAdapter(AlbumAdapter())
+    ..registerAdapter(TrackAdapter())
+    ..registerAdapter(MusicSourceAdapter())
+    ..registerAdapter(DurationAdapter());
 
   runApp(
     OmniwaveApp(
@@ -61,6 +70,8 @@ class OmniwaveApp extends StatelessWidget {
           create: (_) => MusicRepositoryImpl(
             useYoutubeProxy: kIsWeb,
             spotifyAccessTokenStream: _playerRepository.accessTokenStream,
+            spotifyCache: HiveMusicCache(MusicSource.spotify),
+            synchronizeCacheOnSpotifyConnect: true,
           ),
         ),
         RepositoryProvider.value(value: _playerRepository),

@@ -1,4 +1,5 @@
 import 'package:common_models/common_models.dart';
+import 'package:hive/hive.dart';
 
 class TrackCollection extends MusicEntity {
   const TrackCollection({
@@ -10,6 +11,7 @@ class TrackCollection extends MusicEntity {
     required this.tracks,
   });
 
+  @HiveField(16)
   final List<Track> tracks;
 
   @override

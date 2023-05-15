@@ -11,6 +11,7 @@ dependencies:
   common_models:
     path: ../common_models
   equatable: ^2.0.5
+  hive: ^2.2.3
   http: ^0.13.5
   spotify: ^0.8.0
   spotify_sdk: ^2.3.0

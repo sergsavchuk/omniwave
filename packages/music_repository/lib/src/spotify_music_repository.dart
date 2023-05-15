@@ -2,9 +2,10 @@ import 'dart:async';
 
 import 'package:common_models/common_models.dart';
 import 'package:music_repository/music_repository.dart';
+import 'package:music_repository/src/cache_music_repository.dart';
 import 'package:spotify/spotify.dart' as spotify;
 
-class SpotifyMusicRepository implements MusicRepository {
+class SpotifyMusicRepository implements MusicRepositoryWithCacheCapability {
   SpotifyMusicRepository(Stream<String> accessTokenStream) {
     _accessTokenSubscription = accessTokenStream.listen(_accessTokenChanged);
   }
@@ -52,6 +53,21 @@ class SpotifyMusicRepository implements MusicRepository {
   @override
   Stream<List<Album>> albumsStream() async* {
     // TODO(sergsavchuk): implement albumsStream
+  }
+
+  @override
+  Future<bool> albumsCacheOutdated(List<Album> albumsCache) async {
+    final spotifyApi = _spotifyApi;
+    if (spotifyApi == null) {
+      return false;
+    }
+
+    final page = await spotifyApi.me.savedAlbums().getPage(1, 0);
+    final lengthEqual = page.metadata.total == albumsCache.length;
+    final firstItemsEqual = (page.items?.isEmpty ?? true) ||
+        page.items?.first.toOmniwaveAlbum() == albumsCache.first;
+
+    return !lengthEqual || !firstItemsEqual;
   }
 
   @override

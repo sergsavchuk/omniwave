@@ -1,11 +1,10 @@
 part of 'albums_bloc.dart';
 
 class AlbumsState extends Equatable {
-  const AlbumsState({this.albums = const [], this.loadingNextPage = false});
+  const AlbumsState({this.albums = const []});
 
   final List<Album> albums;
-  final bool loadingNextPage;
 
   @override
-  List<Object> get props => [albums, loadingNextPage];
+  List<Object> get props => [albums];
 }

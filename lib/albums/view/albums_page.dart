@@ -18,36 +18,39 @@ class AlbumsPage extends StatelessWidget {
       category: NavBarItem.albums,
       body: BlocProvider(
         create: (context) =>
-            AlbumsBloc(musicRepository: context.read<MusicRepository>())
-              ..add(const AlbumsPageLoadRequested(0)),
-        child: BlocListener<AppSettingsBloc, AppSettingsState>(
-          listenWhen: (prev, curr) =>
-              prev.spotifyConnected != curr.spotifyConnected,
-          listener: (context, __) =>
-              context.read<AlbumsBloc>().add(const AlbumsPageLoadRequested(0)),
-          child: const AlbumsView(),
-        ),
+            AlbumsBloc(musicRepository: context.read<MusicRepository>()),
+        child: const AlbumsView(),
       ),
     );
   }
 }
 
-class AlbumsView extends StatelessWidget {
+class AlbumsView extends StatefulWidget {
   const AlbumsView({super.key});
+
+  @override
+  State<AlbumsView> createState() => _AlbumsViewState();
+}
+
+class _AlbumsViewState extends State<AlbumsView> {
+  @override
+  void initState() {
+    super.initState();
+
+    context.read<AlbumsBloc>().add(const AlbumsInitialLoadRequested());
+
+    // TODO(sergsavchuk): request connect on startup only if the user
+    //  has been connected before
+    context.read<AppSettingsBloc>().add(AppSettingsSpotifyConnectRequested());
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AlbumsBloc, AlbumsState>(
       builder: (context, state) {
         return GridWithPagination(
-          loadingNextPage: state.loadingNextPage,
-          onGridEndReached: () {
-            if (!state.loadingNextPage) {
-              context.read<AlbumsBloc>().add(
-                    AlbumsPageLoadRequested(state.albums.length),
-                  );
-            }
-          },
+          loadingNextPage: false,
+          onGridEndReached: () {},
           crossAxisCount: Utils.isSmallScreen ? 2 : 4,
           childAspectRatio: Utils.isSmallScreen ? 2 : 0.75,
           children: state.albums

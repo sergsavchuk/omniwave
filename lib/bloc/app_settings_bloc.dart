@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:common_models/common_models.dart';
@@ -49,8 +50,9 @@ class AppSettingsBloc extends Bloc<AppSettingsEvent, AppSettingsState> {
       );
 
       emit(const AppSettingsState(spotifyConnected: true));
-    } catch (_) {
+    } catch (e) {
       // TODO(sergsavchuk): handle the error
+      log('Failed to connect Spotify', error: e);
     }
   }
 

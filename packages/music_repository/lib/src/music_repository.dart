@@ -2,9 +2,12 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:async/async.dart';
 import 'package:common_models/common_models.dart';
+import 'package:music_repository/src/cache/music_cache.dart';
+import 'package:music_repository/src/cache_music_repository.dart';
 import 'package:music_repository/src/spotify_music_repository.dart';
 import 'package:music_repository/src/youtube_music_repository.dart';
 
+// TODO(sergsavchuk): move this constant somewhere?
 const unknown = 'Unknown';
 
 abstract class MusicRepository {
@@ -29,10 +32,19 @@ class MusicRepositoryImpl implements MusicRepository {
   MusicRepositoryImpl({
     required bool useYoutubeProxy,
     required Stream<String> spotifyAccessTokenStream,
+    MusicCache? spotifyCache,
+    bool synchronizeCacheOnSpotifyConnect = false,
   }) : _repositories = [
-          SpotifyMusicRepository(spotifyAccessTokenStream),
+          CacheMusicRepository(
+            SpotifyMusicRepository(spotifyAccessTokenStream),
+            spotifyCache,
+          ),
           YoutubeMusicRepository(useYoutubeProxy: useYoutubeProxy)
-        ];
+        ] {
+    if (synchronizeCacheOnSpotifyConnect) {
+      spotifyAccessTokenStream.first.then((value) => synchronizeCache());
+    }
+  }
 
   late final List<MusicRepository> _repositories;
 
@@ -46,6 +58,14 @@ class MusicRepositoryImpl implements MusicRepository {
   StreamController<List<Track>>? _tracksStreamController;
 
   final _subscriptions = <StreamSubscription<dynamic>>[];
+
+  void synchronizeCache() {
+    for (final repository in _repositories) {
+      if (repository is CacheMusicRepository) {
+        repository.synchronize();
+      }
+    }
+  }
 
   @override
   List<MusicSource> get supportedSources =>
@@ -71,7 +91,7 @@ class MusicRepositoryImpl implements MusicRepository {
   @override
   Stream<List<Album>> albumsStream() {
     if (_albumsStreamController == null) {
-      _albumsStreamController = StreamController();
+      _albumsStreamController = StreamController.broadcast();
 
       for (final repository in _repositories) {
         _subscribeToSubrepoStream(
