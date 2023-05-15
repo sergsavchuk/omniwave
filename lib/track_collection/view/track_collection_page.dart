@@ -279,10 +279,14 @@ class _PlayTrackCollectionButton extends StatelessWidget {
           color: Theme.of(context).colorScheme.surface,
           shape: BoxShape.circle,
         ),
-        child: Icon(
-          Icons.play_circle,
-          size: size,
-          color: Theme.of(context).colorScheme.primary,
+        child: BlocBuilder<PlayerBloc, PlayerState>(
+          builder: (context, state) => Icon(
+            state.currentTrackCollection == trackCollection && state.isPlaying
+                ? Icons.pause_circle
+                : Icons.play_circle,
+            size: size,
+            color: Theme.of(context).colorScheme.primary,
+          ),
         ),
       ),
     );
