@@ -30,6 +30,7 @@ dependencies:
   multi_split_view: ^2.2.0
   music_repository:
     path: packages/music_repository
+  palette_generator: ^0.3.3+2
   player_repository:
     path: packages/player_repository
   rxdart: ^0.27.7

@@ -1,13 +1,11 @@
 import 'dart:math';
 
 import 'package:common_models/common_models.dart';
-import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:omniwave/common/app_scaffold/app_scaffold.dart';
-import 'package:omniwave/common/player/bloc/player_bloc.dart';
+import 'package:omniwave/common/common.dart';
 import 'package:omniwave/styles.dart';
 import 'package:omniwave/track_collection/track_collection.dart';
 import 'package:omniwave/utils.dart';
@@ -62,7 +60,7 @@ class SmallTrackCollectionView extends StatefulWidget {
 
 class _SmallTrackCollectionViewState extends State<SmallTrackCollectionView> {
   static const collapsedAppBarHeight = kToolbarHeight;
-  static const expandedAppBarHeight = 300.0;
+  static const expandedAppBarHeight = 250.0;
 
   static const playButtonInset = Insets.extraSmall;
   static const playButtonSize = 50.0;
@@ -86,8 +84,6 @@ class _SmallTrackCollectionViewState extends State<SmallTrackCollectionView> {
 
   @override
   Widget build(BuildContext context) {
-    final gradientColor = Theme.of(context).primaryColor;
-
     return Stack(
       children: [
         CustomScrollView(
@@ -115,25 +111,16 @@ class _SmallTrackCollectionViewState extends State<SmallTrackCollectionView> {
               flexibleSpace: _ExpandedAppBarContent(
                 expandedAppBarHeight: expandedAppBarHeight,
                 trackCollection: widget.trackCollection,
-                gradientColor: gradientColor,
               ),
             ),
             SliverList(
               delegate: SliverChildListDelegate([
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        gradientColor.blend(
-                          Theme.of(context).colorScheme.surface,
-                          gradientBreakPosition,
-                        ),
-                        Theme.of(context).colorScheme.surface
-                      ],
-                    ),
-                  ),
+                DynamicGradient(
+                  imageUrl:
+                      widget.trackCollection.imageUrl ?? Urls.defaultCover,
+                  blendAmount: gradientBreakPosition,
+                  surfaceColor: Theme.of(context).colorScheme.surface,
+                  fromBlended: true,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -242,29 +229,17 @@ class _ExpandedAppBarContent extends StatelessWidget {
   const _ExpandedAppBarContent({
     required this.expandedAppBarHeight,
     required this.trackCollection,
-    required this.gradientColor,
   });
 
-  final Color gradientColor;
   final double expandedAppBarHeight;
   final TrackCollection trackCollection;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            gradientColor,
-            gradientColor.blend(
-              Theme.of(context).colorScheme.surface,
-              gradientBreakPosition,
-            ),
-          ],
-        ),
-      ),
+    return DynamicGradient(
+      imageUrl: trackCollection.imageUrl ?? Urls.defaultCover,
+      blendAmount: gradientBreakPosition,
+      surfaceColor: Theme.of(context).colorScheme.surface,
       child: Center(
         child: BlocBuilder<TrackCollectionBloc, TrackCollectionState>(
           builder: (context, state) => Padding(
@@ -331,7 +306,7 @@ class _PlayTrackCollectionButton extends StatelessWidget {
             state.currentTrackCollection == trackCollection && state.isPlaying
                 ? Icons.pause_sharp
                 : Icons.play_arrow_sharp,
-            size: size * .75,
+            size: size * .65,
             color: Theme.of(context).colorScheme.surface,
           ),
         ),
